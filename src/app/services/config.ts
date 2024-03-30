@@ -1,0 +1,5 @@
+export enum Config {
+  UrlLogin = 'https://www.bling.com.br/Api/v3/oauth/authorize?response_type=code&client_id=0f440f3f566895942ac1b12c0cbe6693a915a46a&state=81cb4eef2e13162fd254e2584f3651cc',
+  clientId = '0f440f3f566895942ac1b12c0cbe6693a915a46a',
+  secretId = '914798832f446615d1db189db8b4a616b0b75cf2ed2df2dd8cc6da90d0f7'
+}
