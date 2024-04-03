@@ -1,0 +1,36 @@
+<div
+    class="bg-dark flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden"
+>
+    <div class="flex flex-column align-items-center justify-content-center">
+        <div class="grid flex flex-column align-items-center">
+            <img
+                src="../../../../../assets/images/logo.png"
+                alt="Eletrogate logo"
+                class="mb-5 w-6rem flex-shrink-0"
+            />
+            <h1 class="text-900 text-white font-bold font-white mb-2">
+                Acesso Negado
+            </h1>
+            <span class="text-600 text-white mb-5"
+                >Você não possui acesso para esta rota. Gentileza, entrar em
+                contato com o suporte.</span
+            >
+
+            <button
+                pButton
+                pRipple
+                icon="pi pi-arrow-left"
+                class="bg-white color-dark"
+                label="Voltar para o início"
+                [routerLink]="['/']"
+            ></button>
+            <button
+                pButton
+                pRipple
+                class="p-button-text color-secondary mt-3"
+                label="Sair"
+                [routerLink]="['/institucional']"
+            ></button>
+        </div>
+    </div>
+</div>

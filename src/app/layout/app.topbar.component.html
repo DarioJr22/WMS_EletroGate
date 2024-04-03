@@ -1,0 +1,20 @@
+<div class="layout-topbar">
+    <a class="layout-topbar-logo text-white" routerLink=""> Eletrogate </a>
+
+    <div
+        #topbarmenu
+        class="layout-topbar-menu"
+        [ngClass]="{
+            'layout-topbar-menu-mobile-active':
+                layoutService.state.profileSidebarVisible
+        }"
+    >
+        <button
+            class="p-link layout-topbar-button logout"
+            routerLink="/auth/login"
+        >
+            <i class="pi pi-sign-out"></i>
+            <span>Sair</span>
+        </button>
+    </div>
+</div>

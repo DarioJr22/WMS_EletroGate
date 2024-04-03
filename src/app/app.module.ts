@@ -1,27 +1,14 @@
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-
-import { AppComponent } from './app.component';
-import { AuthComponent } from './modules/auth/auth.component';
 import { AppRoutingModule } from './app-routing.module';
-import { CookieService } from 'ngx-cookie-service';
-import { HttpClientModule } from '@angular/common/http';
-import { SeparacaoComponent } from './modules/separacao/separacao.component';
-import { PedidosService } from './services/pedidos.service';
+import { AppComponent } from './app.component';
+import { NotfoundComponent } from './demo/components/notfound/notfound.component';
+import { AppLayoutModule } from './layout/app.layout.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    AuthComponent,
-    SeparacaoComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-
-  ],
-  providers: [CookieService,PedidosService],
-  bootstrap: [AppComponent]
+    declarations: [AppComponent, NotfoundComponent],
+    imports: [AppRoutingModule, AppLayoutModule],
+    providers: [{ provide: LocationStrategy, useClass: PathLocationStrategy }],
+    bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
