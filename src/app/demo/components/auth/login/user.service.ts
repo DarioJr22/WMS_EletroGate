@@ -25,10 +25,8 @@ export class UserService {
         const header = {
             headers: new HttpHeaders({
                 'Content-Type': 'application/x-www-form-urlencoded',
-                Accept: '1.0',
-                Authorization: `Basic ${btoa(
-                    Config.clientId + ':' + Config.secretId
-                )}`,
+                'Accept': '1.0',
+                'Authorization': `Basic ${btoa(Config.clientId + ':' +Config.secretId)}`,
             }),
         };
         //Configura os parâmetros da requisição
@@ -63,22 +61,29 @@ export class UserService {
                 this.coockie.set('refresh_token', refresh_token);
                 this.coockie.set('scope', scope);
                 this.coockie.set('expires_in', expires_in);
+
             },
             error: (err) => {
                 //Por uma notificação ou algo do tipo aqui.
+                //Fazer um fluxo caso o token seja inválido ou a sessão tenha expirado
                 console.log(err);
             },
         });
     }
 
     getAuthCode() {
-        //Fluxo de autorização inicial
-        if (!window.location.href.includes('code')) {
-            window.location.href = Config.UrlLogin;
-            let { code, state } = this.actRoute.snapshot.queryParams;
-            this.coockie.set('code', code);
-            this.coockie.set('state', state);
-            this.getAccessToken(code);
-        }
+        //Fluxo de autorização inicia
+        // 1º Caso - Usuário está entrando a 1ª vez na aplicação e vai se autenticar
+        // 1.1 - Adição de verificação se o usuário estiver voltando para aplicação após se autenticar então ->
+       if(!window.location.href.includes('code')){
+        //1.2 - Caso não seja esse o caso então ele fará o login normalmente
+        //obs - Fluxo de obtenção do code
+        window.location.href = Config.UrlLogin
+       } else {
+        //1.3 Caso o usuário tenha se autenticado, então entra no fluxo de aquisição do token
+
+        let { code, state } = this.actRoute.snapshot.queryParams;
+        this.getAccessToken(code);
+       }
     }
 }

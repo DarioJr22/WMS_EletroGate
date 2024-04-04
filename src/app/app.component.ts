@@ -11,7 +11,7 @@ export class AppComponent implements OnInit {
         private primengConfig: PrimeNGConfig,
         private cookieService: CookieService
     ) {
-        cookieService.deleteAll();
+        //cookieService.deleteAll();
     }
 
     ngOnInit() {
