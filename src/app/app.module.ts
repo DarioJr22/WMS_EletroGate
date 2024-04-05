@@ -1,3 +1,4 @@
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -12,7 +13,13 @@ import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [AppComponent, AuthComponent, SeparacaoComponent],
-  imports: [BrowserModule, SharedModule, AppRoutingModule, HttpClientModule],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    SharedModule,
+    AppRoutingModule,
+    HttpClientModule,
+  ],
   providers: [CookieService, PedidosService],
   bootstrap: [AppComponent],
 })

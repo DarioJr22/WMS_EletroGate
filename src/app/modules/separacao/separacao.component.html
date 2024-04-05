@@ -1,7 +1,39 @@
+<h1>Separação</h1>
+<hr />
 <div class="card">
-  <h3>Separação</h3>
-  <hr />
-
+  <div class="grid">
+    <div class="col-4">asd</div>
+    <div class="col-8">
+      <div class="grid">
+        <div class="col-6">
+          <div class="flex flex-column gap-2">
+            <label for="username">Nº do Cliente</label>
+            <input pInputText id="username" aria-describedby="username-help" />
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="flex flex-column gap-2">
+            <label for="username">Nº do Pedido</label>
+            <input pInputText id="username" aria-describedby="username-help" />
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="flex flex-column gap-2">
+            <label for="username">Nº do Pedido - Loja Virtual</label>
+            <input pInputText id="username" aria-describedby="username-help" />
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="flex flex-column gap-2">
+            <label for="username">Nº da Nota Fiscal</label>
+            <input pInputText id="username" aria-describedby="username-help" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card">
   <p-table [value]="dados" [tableStyle]="{ 'min-width': '50rem' }">
     <ng-template pTemplate="header">
       <tr>
