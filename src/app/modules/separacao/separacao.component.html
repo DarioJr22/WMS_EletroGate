@@ -2,7 +2,11 @@
 <hr />
 <div class="card">
   <div class="grid">
-    <div class="col-4">asd</div>
+    <div class="col-4">
+      <div class="card flex justify-content-center">
+        <p-chart type="doughnut" [data]="data" [options]="options"></p-chart>
+      </div>
+    </div>
     <div class="col-8">
       <div class="grid">
         <div class="col-6">
@@ -29,6 +33,10 @@
             <input pInputText id="username" aria-describedby="username-help" />
           </div>
         </div>
+      </div>
+      <div class="flex justify-content-end mt-2">
+        <p-button label="Limpar" [outlined]="true" severity="danger"></p-button>
+        <p-button class="ml-3" label="Pesquisar"></p-button>
       </div>
     </div>
   </div>

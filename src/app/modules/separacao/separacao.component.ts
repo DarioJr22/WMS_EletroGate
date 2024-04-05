@@ -11,6 +11,9 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class SeparacaoComponent implements OnInit {
   dados: any[] = [];
+
+  data: any;
+  options: any;
   constructor(
     private cookie: CookieService,
     private userService: UserService,
@@ -23,6 +26,39 @@ export class SeparacaoComponent implements OnInit {
         this.userService.getAuthCode()
       : //Se o bonito já tiver autenticado, então ele segue pra a tela onde ele escolherá oque ele quer da vida dele: Separação / Conferência
         this.getPedidos();
+
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue('--text-color');
+
+    this.data = {
+      labels: ['A', 'B', 'C'],
+      datasets: [
+        {
+          data: [300, 50, 100],
+          backgroundColor: [
+            documentStyle.getPropertyValue('--blue-500'),
+            documentStyle.getPropertyValue('--yellow-500'),
+            documentStyle.getPropertyValue('--green-500'),
+          ],
+          hoverBackgroundColor: [
+            documentStyle.getPropertyValue('--blue-400'),
+            documentStyle.getPropertyValue('--yellow-400'),
+            documentStyle.getPropertyValue('--green-400'),
+          ],
+        },
+      ],
+    };
+
+    this.options = {
+      cutout: '60%',
+      plugins: {
+        legend: {
+          labels: {
+            color: textColor,
+          },
+        },
+      },
+    };
   }
 
   getPedidos() {

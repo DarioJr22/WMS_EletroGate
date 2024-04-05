@@ -18,6 +18,7 @@ import { DividerModule } from 'primeng/divider';
 import { DragDropModule } from 'primeng/dragdrop';
 import { DropdownModule } from 'primeng/dropdown';
 import { FieldsetModule } from 'primeng/fieldset';
+import { ChartModule } from 'primeng/chart';
 import { ImageModule } from 'primeng/image';
 import { InputMaskModule } from 'primeng/inputmask';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -71,6 +72,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     ChipsModule,
     DragDropModule,
     ConfirmDialogModule,
+    ChartModule,
     StepperModule,
     ConfirmPopupModule,
     DataViewModule,
@@ -135,6 +137,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     DropdownModule,
     FieldsetModule,
     ImageModule,
+    ChartModule,
     InputMaskModule,
     InputNumberModule,
     InputSwitchModule,
