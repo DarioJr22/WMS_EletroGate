@@ -1,11 +1,19 @@
-.card {
+.testee {
     &:hover {
         cursor: pointer;
         background-color: #112b13;
         transition: 0.5s;
-        h1,
-        span {
-            color: white;
-        }
+        color: white;
+    }
+}
+
+.abc {
+    background-color: #fff;
+    color: #112b13;
+    &:hover {
+        cursor: pointer;
+        background-color: #ee8823;
+        transition: 0.5s;
+        color: #112b13;
     }
 }

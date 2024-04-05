@@ -8,14 +8,14 @@ import { AppLayoutComponent } from './layout/app.layout.component';
         RouterModule.forRoot(
             [
                 {
-                    path: '',
+                    path: 'auth',
                     loadChildren: () =>
                         import('./demo/components/auth/auth.module').then(
                             (m) => m.AuthModule
                         ),
                 },
                 {
-                    path: 'aoba',
+                    path: '',
                     loadChildren: () =>
                         import('./views/inicio/inicio.module').then(
                             (m) => m.InicioModule
