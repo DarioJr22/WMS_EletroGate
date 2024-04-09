@@ -10,9 +10,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { SeparacaoComponent } from './modules/separacao/separacao.component';
 import { PedidosService } from './services/pedidos.service';
 import { SharedModule } from './shared/shared.module';
+import { OpcoesComponent } from './modules/opcoes/opcoes.component';
 
 @NgModule({
-  declarations: [AppComponent, AuthComponent, SeparacaoComponent],
+  declarations: [AppComponent, AuthComponent, SeparacaoComponent, OpcoesComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
