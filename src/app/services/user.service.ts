@@ -1,86 +1,87 @@
-import { Injectable } from "@angular/core";
-import { CookieService } from "ngx-cookie-service";
-import { Config } from "./config";
-import { ActivatedRoute } from "@angular/router";
-import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
+import { Injectable } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
+import { Config } from './config';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { TokenService } from './token.service';
 
 //Sem o code
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class UserService {
-
   constructor(
-    private coockie:CookieService,
-    private actRoute:ActivatedRoute,
-    private http:HttpClient) { }
+    private tokenService: TokenService,
+    private router: Router,
+    // private coockie: CookieService,
+    private actRoute: ActivatedRoute,
+    private http: HttpClient
+  ) {}
 
+  async getAccessToken(code: string): Promise<void> {
+    debugger;
+    //Obtem o token de acesso
+    let urlToken = '/Api/v3/oauth/token';
 
-
-
-
-  getAccessToken(code:string){
-  //Obtem o token de acesso
-    let urlToken = '/Api/v3/oauth/token'
-  //Configura o cabeçalho de autenticação
-  //Esse autorization é encodado em base64 o clientId e secretId separado por ':'
+    //Configura o cabeçalho de autenticação
+    //Esse autorization é encodado em base64 o clientId e secretId separado por ':'
     const header = {
       headers: new HttpHeaders({
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': '1.0',
-        'Authorization': `Basic ${btoa(Config.clientId + ':' +Config.secretId)}`,
-      })
-    }
+        Accept: '1.0',
+        Authorization: `Basic ${btoa(Config.clientId + ':' + Config.secretId)}`,
+      }),
+    };
 
-  //Configura os parâmetros da requisição
+    //Configura os parâmetros da requisição
     const body = new HttpParams()
       .set('grant_type', 'authorization_code')
       .set('code', code);
 
-  // Envia a requisição
-  /* {
-    //RETORNO
-    "access_token": "fb1af838eedf740d9ca7968b055af84dfcd5226c",
-    "expires_in": 21600,
-    "token_type": "Bearer",
-    "scope": "98309 98310 98313 199272829 220621674 318257556 318257570 363921589 363921592 791588404",
-    "refresh_token": "b794c0cd9d1d8071a059e918ed4a03128a924c55"
-} */
-    this.http.post(urlToken,body.toString(),header)
-      .subscribe({
+    // Envia a requisição e retorna uma Promise
+    return new Promise<void>((resolve, reject) => {
+      this.http.post(urlToken, body.toString(), header).subscribe({
+        next: (data: any) => {
+          //Desestrutura o retorno em variáveis
+          let { access_token, expires_in, token_type, scope, refresh_token } =
+            data;
 
-      next:(data:any) => {
-        //Desestrutura o retorno em variáveis
-        let {access_token, expires_in, token_type,scope,refresh_token} = data
+          //Atribui á parâmetros de autenticação em "COOKIES"
+          this.tokenService.setLocalStorage('access_token', access_token);
+          this.tokenService.setLocalStorage('token_type', token_type);
+          this.tokenService.setLocalStorage('refresh_token', refresh_token);
+          this.tokenService.setLocalStorage('scope', scope);
+          this.tokenService.setLocalStorage('expires_in', expires_in);
+          // this.coockie.set('access_token', access_token);
+          // this.coockie.set('token_type', token_type);
+          // this.coockie.set('refresh_token', refresh_token);
+          // this.coockie.set('scope', scope);
+          // this.coockie.set('expires_in', expires_in);
+          this.router.navigate(['/opcoes']);
 
-        //Atribui á parâmetros de autenticação em "COOKIES"
-        this.coockie.set('access_token', access_token)
-        this.coockie.set('token_type', token_type)
-        this.coockie.set('refresh_token', refresh_token)
-        this.coockie.set('scope', scope)
-        this.coockie.set('expires_in', expires_in)
-      },
-    error:(err)=>{
-        //Por uma notificação ou algo do tipo aqui.
-        console.log(err)
-    }})
-
+          resolve(); // Resolve a Promise após a operação ser concluída com sucesso
+        },
+        error: (err) => {
+          // Rejeita a Promise se houver um erro
+          reject(err);
+        },
+      });
+    });
   }
 
-  getAuthCode(){
+  async getAuthCode() {
+    const token = await this.tokenService.getToken();
+    debugger;
+    let { code, state } = this.actRoute.snapshot.queryParams;
+    if (!code && !state) {
+      // Fluxo de autorização inicial
+      window.location.href = Config.UrlLogin;
+    } else {
+      this.tokenService.setLocalStorage('code', code);
+      this.tokenService.setLocalStorage('state', state);
 
-  //Fluxo de autorização inicial
-  window.location.href = Config.UrlLogin
-
-
-  let {code,state} = this.actRoute.snapshot.queryParams
-  this.coockie.set('code', code)
-  this.coockie.set('state', state)
-  this.getAccessToken(code)
-
+      await this.getAccessToken(code);
+    }
   }
-
 }
