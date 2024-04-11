@@ -73,8 +73,6 @@ export class UserService {
   }
 
   async getAuthCode() {
-    const token = await this.tokenService.getToken();
-    debugger;
     let { code, state } = this.actRoute.snapshot.queryParams;
     if (!code && !state) {
       // Fluxo de autorização inicial

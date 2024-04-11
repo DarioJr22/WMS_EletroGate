@@ -29,7 +29,6 @@ export class AuthComponent implements OnInit {
   }
 
   async fetchData(): Promise<void> {
-    debugger;
     try {
       const token = await this.tokenService.getToken();
       console.log('Token:', token);

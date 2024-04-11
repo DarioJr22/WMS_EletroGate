@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { Config } from './config';
+import { TokenService } from './token.service';
 
 //Sem o code
 
@@ -11,8 +12,9 @@ import { Config } from './config';
 })
 export class PedidosService {
   constructor(
-    private cookie: CookieService,
+    // private cookie: CookieService,
     private http: HttpClient,
+    private tokenService: TokenService,
     private router: Router
   ) {}
 
@@ -52,25 +54,28 @@ export class PedidosService {
           data;
 
         //Atribui á parâmetros de autenticação em "COOKIES"
-        this.cookie.set('access_token', access_token);
-        this.cookie.set('token_type', token_type);
-        this.cookie.set('refresh_token', refresh_token);
-        this.cookie.set('scope', scope);
-        this.cookie.set('expires_in', expires_in);
+        this.tokenService.setLocalStorage('access_token', access_token);
+        this.tokenService.setLocalStorage('token_type', token_type);
+        this.tokenService.setLocalStorage('refresh_token', refresh_token);
+        this.tokenService.setLocalStorage('scope', scope);
+        this.tokenService.setLocalStorage('expires_in', expires_in);
       },
       error: (err) => {
         //Por uma notificação ou algo do tipo aqui.
         console.log(err);
-        this.cookie.deleteAll();
+        this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
     });
   }
 
   getPedidos() {
+    const token: any = this.tokenService.getToken();
+    debugger;
+
     const urlToken = '/Api/v3/pedidos/vendas';
     const header = new HttpHeaders({
-      Authorization: `Bearer ${this.cookie.get('access_token')}`,
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
 
     return this.http.get(urlToken, { headers: header });
@@ -78,8 +83,10 @@ export class PedidosService {
 
   getPedidosDetail(code: string) {
     const urlToken = `/Api/v3/pedidos/vendas/${code}`;
+    const token: any = this.tokenService.getToken();
+    debugger;
     const header = new HttpHeaders({
-      Authorization: `Bearer ${this.cookie.get('access_token')}`,
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
 
     return this.http.get(urlToken, { headers: header });
