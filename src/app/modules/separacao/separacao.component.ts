@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
+import { Config } from 'src/app/services/config';
 import { PedidosService } from 'src/app/services/pedidos.service';
+import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 
 @Component({
@@ -15,17 +17,20 @@ export class SeparacaoComponent implements OnInit {
   data: any;
   options: any;
   constructor(
-    private cookie: CookieService,
+    // private cookie: CookieService,
     private userService: UserService,
+    private tokenService: TokenService,
     private router: Router,
     private pedidoServ: PedidosService
   ) {}
   ngOnInit(): void {
-    !this.cookie.get('access_token') || this.cookie.get('access_token') === null
-      ? //Aqui o usuário inicia o fluxo de autenticação,
-        this.userService.getAuthCode()
-      : //Se o bonito já tiver autenticado, então ele segue pra a tela onde ele escolherá oque ele quer da vida dele: Separação / Conferência
-        this.getPedidos();
+    // !this.tokenService.getToken() || this.tokenService.getToken() === null
+    // ?
+    //Aqui o usuário inicia o fluxo de autenticação,
+    // this.userService.getAuthCode()
+    // :
+    //Se o bonito já tiver autenticado, então ele segue pra a tela onde ele escolherá oque ele quer da vida dele: Separação / Conferência
+    this.getPedidos();
 
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--text-color');
@@ -70,10 +75,11 @@ export class SeparacaoComponent implements OnInit {
         /* dataTemp.forEach((element:any) => {
           //this.getPedidosDetalhe(element.id)
         }) */
+        debugger;
       },
       error: (err: any) => {
-        console.log(err);
-        this.cookie.deleteAll();
+        debugger;
+        this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
       complete: () => {},

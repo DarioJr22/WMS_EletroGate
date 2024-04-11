@@ -23,4 +23,7 @@ export class TokenService {
   removeToken(): void {
     localStorage.removeItem('access_token');
   }
+  limparLocalStorage() {
+    localStorage.clear();
+  }
 }

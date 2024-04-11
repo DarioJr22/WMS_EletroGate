@@ -14,9 +14,8 @@ export class AuthComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private tokenService: TokenService,
-    private actRout: ActivatedRoute
-  ) // private cookie: CookieService
-  {}
+    private actRout: ActivatedRoute // private cookie: CookieService
+  ) {}
 
   ngOnInit(): void {
     //Caso o usuário não tenha um token de acesso registrado, segue o fluxo de autenticação da aplicação

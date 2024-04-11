@@ -4,6 +4,7 @@ import { Config } from './config';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { TokenService } from './token.service';
+import { BehaviorSubject } from 'rxjs';
 
 //Sem o code
 
@@ -11,6 +12,9 @@ import { TokenService } from './token.service';
   providedIn: 'root',
 })
 export class UserService {
+  private stateSubject = new BehaviorSubject<string>('');
+  private codeSubject = new BehaviorSubject<string>('');
+
   constructor(
     private tokenService: TokenService,
     private router: Router,
@@ -20,7 +24,6 @@ export class UserService {
   ) {}
 
   async getAccessToken(code: string): Promise<void> {
-    debugger;
     //Obtem o token de acesso
     let urlToken = '/Api/v3/oauth/token';
 
@@ -39,11 +42,9 @@ export class UserService {
       .set('grant_type', 'authorization_code')
       .set('code', code);
 
-    // Envia a requisição e retorna uma Promise
     return new Promise<void>((resolve, reject) => {
       this.http.post(urlToken, body.toString(), header).subscribe({
         next: (data: any) => {
-          //Desestrutura o retorno em variáveis
           let { access_token, expires_in, token_type, scope, refresh_token } =
             data;
 
@@ -60,10 +61,11 @@ export class UserService {
           // this.coockie.set('expires_in', expires_in);
           this.router.navigate(['/opcoes']);
 
-          resolve(); // Resolve a Promise após a operação ser concluída com sucesso
+          resolve();
         },
         error: (err) => {
-          // Rejeita a Promise se houver um erro
+          this.router.navigate(['/']);
+          this.tokenService.limparLocalStorage();
           reject(err);
         },
       });

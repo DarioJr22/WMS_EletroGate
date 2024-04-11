@@ -7,7 +7,7 @@
 //     const token = await service.getToken();
 
 //     async fetchData(): Promise<void> {
-//       debugger;
+//
 //       try {
 //         const token = await this.tokenService.getToken();
 //         console.log('Token:', token);

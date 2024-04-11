@@ -11,9 +11,10 @@ import { SeparacaoComponent } from './modules/separacao/separacao.component';
 import { PedidosService } from './services/pedidos.service';
 import { SharedModule } from './shared/shared.module';
 import { OpcoesComponent } from './modules/opcoes/opcoes.component';
+import { ConferenciaComponent } from './modules/conferencia/conferencia.component';
 
 @NgModule({
-  declarations: [AppComponent, AuthComponent, SeparacaoComponent, OpcoesComponent],
+  declarations: [AppComponent, AuthComponent, SeparacaoComponent, OpcoesComponent, ConferenciaComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
