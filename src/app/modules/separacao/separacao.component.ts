@@ -16,6 +16,10 @@ export class SeparacaoComponent implements OnInit {
   data: any;
   options: any;
   pedido: any;
+
+  visualizarDialog = false;
+  teste: any = [];
+
   constructor(
     // private cookie: CookieService,
     private userService: UserService,
@@ -23,6 +27,8 @@ export class SeparacaoComponent implements OnInit {
     private router: Router,
     private pedidoServ: PedidosService
   ) {
+    this.createChart();
+
     this.form = new FormGroup({
       numCliente: new FormControl(),
       numPedido: new FormControl(),
@@ -30,10 +36,10 @@ export class SeparacaoComponent implements OnInit {
       numNotaFiscal: new FormControl(),
     });
   }
+
   ngOnInit(): void {
-    // this.getPedidos();
+    this.getPedidos();
     this.getPedidosDetalhe();
-    this.createChart();
   }
 
   getPedidos() {
@@ -51,15 +57,16 @@ export class SeparacaoComponent implements OnInit {
   }
 
   getPedidosDetalhe(item?: any) {
-    // this.pedidoServ.getPedidosDetail(item.id).subscribe({
-    this.pedidoServ.getPedidosDetail(20101888982).subscribe({
+    this.visualizarDialog = false;
+    this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         console.log('Pedido Detail', res);
         this.pedido = res.data;
 
-        // this.dados.push(res);
+        this.visualizarDialog = true;
       },
       error: (err: any) => {
+        this.visualizarDialog = false;
         console.log(err);
       },
       complete: () => {},

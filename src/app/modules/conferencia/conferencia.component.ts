@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
@@ -11,28 +12,41 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class ConferenciaComponent implements OnInit {
   dados: any[] = [];
-
+  form: FormGroup;
   data: any;
   options: any;
+  pedido: any;
+
+  visualizarDialog = false;
+  teste: any = [];
+
   constructor(
     // private cookie: CookieService,
     private userService: UserService,
     private tokenService: TokenService,
     private router: Router,
     private pedidoServ: PedidosService
-  ) {}
+  ) {
+    this.createChart();
+
+    this.form = new FormGroup({
+      numCliente: new FormControl(),
+      numPedido: new FormControl(),
+      numPedidoLojaVirtual: new FormControl(),
+      numNotaFiscal: new FormControl(),
+    });
+  }
+
   ngOnInit(): void {
     this.getPedidos();
-
-    this.createChart();
+    this.getPedidosDetalhe();
   }
 
   getPedidos() {
     this.pedidoServ.getPedidos().subscribe({
-      next: (data: any) => {
-        console.log('Pedidos', data);
-
-        this.dados = data.data;
+      next: (res: any) => {
+        console.log('Pedidos', res);
+        this.dados = res.data;
       },
       error: (err: any) => {
         this.tokenService.limparLocalStorage();
@@ -42,14 +56,17 @@ export class ConferenciaComponent implements OnInit {
     });
   }
 
-  getPedidosDetalhe() {
-    this.pedidoServ.getPedidosDetail(1).subscribe({
-      next: (data: any) => {
-        console.log('Pedido Detail', data);
+  getPedidosDetalhe(item?: any) {
+    this.visualizarDialog = false;
+    this.pedidoServ.getPedidosDetail(item.id).subscribe({
+      next: (res: any) => {
+        console.log('Pedido Detail', res);
+        this.pedido = res.data;
 
-        this.dados.push(data);
+        this.visualizarDialog = true;
       },
       error: (err: any) => {
+        this.visualizarDialog = false;
         console.log(err);
       },
       complete: () => {},
