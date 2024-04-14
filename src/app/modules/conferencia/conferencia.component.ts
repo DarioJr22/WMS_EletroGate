@@ -39,7 +39,6 @@ export class ConferenciaComponent implements OnInit {
 
   ngOnInit(): void {
     this.getPedidos();
-    this.getPedidosDetalhe();
   }
 
   getPedidos() {
@@ -56,7 +55,7 @@ export class ConferenciaComponent implements OnInit {
     });
   }
 
-  getPedidosDetalhe(item?: any) {
+  getDetalhePedido(item?: any) {
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {

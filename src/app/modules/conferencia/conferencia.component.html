@@ -104,7 +104,7 @@
               [rounded]="true"
               pTooltip="Visualizar"
               tooltipPosition="bottom"
-              (click)="getPedidosDetalhe(item)"
+              (click)="getDetalhePedido(item)"
             ></p-button>
           </td>
         </tr>
@@ -141,7 +141,7 @@
       </div>
       <div class="xl:col-6 sm:col-12">
         <div class="p-3 border-round-sm surface-100">
-          <span class="text-400">Nº do </span>
+          <span class="text-400">Nº do Pedido - Loja Virtual </span>
           <p style="font-size: 1.4rem" class="font-bold">
             <strong>{{ pedido.loja ? pedido.loja.id : 0 }}</strong>
           </p>
@@ -213,7 +213,10 @@
       </ng-template>
     </p-table>
     <div class="flex gap-3 justify-content-center p-3">
-      <p-button severity="success" label="Imprimir etiquetas"></p-button>
+      <p-button
+        severity="success"
+        label="Imprimir etiquetas de transporte"
+      ></p-button>
       <p-button
         severity="success"
         label="Liberar para conferência"

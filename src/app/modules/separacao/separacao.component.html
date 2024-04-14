@@ -104,7 +104,7 @@
               [rounded]="true"
               pTooltip="Visualizar"
               tooltipPosition="bottom"
-              (click)="getPedidosDetalhe(item)"
+              (click)="getDetalhePedido(item)"
             ></p-button>
           </td>
         </tr>
@@ -141,7 +141,7 @@
       </div>
       <div class="xl:col-6 sm:col-12">
         <div class="p-3 border-round-sm surface-100">
-          <span class="text-400">Nº do </span>
+          <span class="text-400">Nº do Pedido - Loja Virtual</span>
           <p style="font-size: 1.4rem" class="font-bold">
             <strong>{{ pedido.loja ? pedido.loja.id : 0 }}</strong>
           </p>
