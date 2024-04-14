@@ -41,6 +41,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { SidebarModule } from 'primeng/sidebar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { TreeTableModule } from 'primeng/treetable';
 import { SplitterModule } from 'primeng/splitter';
 import { StepperModule } from 'primeng/stepper';
 import { StyleClassModule } from 'primeng/styleclass';
@@ -72,6 +73,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     ChipsModule,
     DragDropModule,
     ConfirmDialogModule,
+    TreeTableModule,
     ChartModule,
     StepperModule,
     ConfirmPopupModule,
@@ -131,6 +133,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     ReactiveFormsModule,
     StepperModule,
     DataViewModule,
+    TreeTableModule,
     DialogModule,
     DividerModule,
     RadioButtonModule,

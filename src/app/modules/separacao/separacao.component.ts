@@ -15,6 +15,7 @@ export class SeparacaoComponent implements OnInit {
   form: FormGroup;
   data: any;
   options: any;
+  pedido: any;
   constructor(
     // private cookie: CookieService,
     private userService: UserService,
@@ -30,16 +31,16 @@ export class SeparacaoComponent implements OnInit {
     });
   }
   ngOnInit(): void {
-    this.getPedidos();
+    // this.getPedidos();
+    this.getPedidosDetalhe();
     this.createChart();
   }
 
   getPedidos() {
     this.pedidoServ.getPedidos().subscribe({
-      next: (data: any) => {
-        console.log('Pedidos', data);
-
-        this.dados = data.data;
+      next: (res: any) => {
+        console.log('Pedidos', res);
+        this.dados = res.data;
       },
       error: (err: any) => {
         this.tokenService.limparLocalStorage();
@@ -49,20 +50,20 @@ export class SeparacaoComponent implements OnInit {
     });
   }
 
-  getPedidosDetalhe() {
-    this.pedidoServ
-      .getPedidosDetail(this.form.controls['numPedido'].value)
-      .subscribe({
-        next: (data: any) => {
-          console.log('Pedido Detail', data);
+  getPedidosDetalhe(item?: any) {
+    // this.pedidoServ.getPedidosDetail(item.id).subscribe({
+    this.pedidoServ.getPedidosDetail(20101888982).subscribe({
+      next: (res: any) => {
+        console.log('Pedido Detail', res);
+        this.pedido = res.data;
 
-          this.dados.push(data);
-        },
-        error: (err: any) => {
-          console.log(err);
-        },
-        complete: () => {},
-      });
+        // this.dados.push(res);
+      },
+      error: (err: any) => {
+        console.log(err);
+      },
+      complete: () => {},
+    });
   }
 
   createChart() {

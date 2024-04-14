@@ -80,8 +80,8 @@ export class PedidosService {
     return this.http.get(urlToken, { headers: header });
   }
 
-  getPedidosDetail(code: number) {
-    const urlToken = `/Api/v3/pedidos/vendas/${code}`;
+  getPedidosDetail(id: number) {
+    const urlToken = `/Api/v3/pedidos/vendas/${id}`;
     const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,

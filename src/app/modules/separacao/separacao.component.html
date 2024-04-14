@@ -70,11 +70,7 @@
             [outlined]="true"
             severity="danger"
           ></p-button>
-          <p-button
-            class="ml-3"
-            label="Pesquisar"
-            (click)="getPedidosDetalhe()"
-          ></p-button>
+          <p-button class="ml-3" label="Pesquisar"></p-button>
         </div>
       </div>
     </div>
@@ -100,9 +96,11 @@
           <td>{{ item.situacao.id }}</td>
           <td>
             <p-button
-              icon="pi pi-check"
+              icon="pi pi-eye"
               [rounded]="true"
-              [outlined]="true"
+              pTooltip="Visualizar"
+              tooltipPosition="bottom"
+              (click)="getPedidosDetalhe(item)"
             ></p-button>
           </td>
         </tr>
@@ -110,3 +108,117 @@
     </p-table>
   </div>
 </div>
+<p-dialog
+  header="Itens do Pedido"
+  [visible]="true"
+  [modal]="true"
+  [style]="{ width: '80vw' }"
+>
+  <div class="card">
+    <div class="grid">
+      <div class="xl:col-6 sm:col-12">
+        <div class="p-3 border-round-sm surface-100">
+          <span class="text-400">Nº do Cliente</span>
+          <p style="font-size: 1.4rem" class="font-bold">
+            <strong>{{ pedido.contato ? pedido.contato.id : 0 }}</strong>
+          </p>
+        </div>
+      </div>
+      <div class="xl:col-6 sm:col-12">
+        <div class="p-3 border-round-sm surface-100">
+          <span class="text-400">Nº do Pedido</span>
+          <p style="font-size: 1.4rem" class="font-bold">
+            <strong>{{ pedido.id }}</strong>
+          </p>
+        </div>
+      </div>
+      <div class="xl:col-6 sm:col-12">
+        <div class="p-3 border-round-sm surface-100">
+          <span class="text-400">Nº do </span>
+          <p style="font-size: 1.4rem" class="font-bold">
+            <strong>{{ pedido.loja ? pedido.loja.id : 0 }}</strong>
+          </p>
+        </div>
+      </div>
+      <div class="xl:col-6 sm:col-12">
+        <div class="p-3 border-round-sm surface-100">
+          <span class="text-400">Modalidade de Envio </span>
+          <p style="font-size: 1.4rem" class="font-bold">
+            <strong>{{ "Não sei" }}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <hr />
+
+    <p-table
+      [value]="pedido.itens"
+      dataKey="name"
+      [tableStyle]="{ 'min-width': '60rem' }"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5rem"></th>
+          <th>Descrição</th>
+          <th>Código</th>
+          <th>Quantidade</th>
+          <th>Valor</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-ped let-expanded="expanded">
+        <tr>
+          <td>
+            <button
+              type="button"
+              pButton
+              pRipple
+              [pRowToggler]="ped"
+              class="p-button-text p-button-rounded p-button-plain"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            ></button>
+          </td>
+          <td>{{ ped.descricao }}</td>
+          <td>{{ ped.codigo }}</td>
+          <td>{{ ped.quantidade }}</td>
+          <td>{{ ped.valor }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="rowexpansion" let-ped>
+        <tr>
+          <td colspan="7">
+            <div class="p-3">asdasdasd</div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <!-- <p-table [value]="pedido.itens" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Descrição</th>
+          <th>Código</th>
+          <th>Quantidade</th>
+          <th>Valor</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-ped>
+        <tr>
+          <td>{{ ped.id }}</td>
+          <td>{{ ped.data | date : "dd/MM/yyyy" }}</td>
+          <td>{{ ped.loja ? ped.loja.id : "" }}</td>
+          <td>{{ ped.contato.nome }}</td>
+          <td>{{ ped.situacao.id }}</td>
+          <td>
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              pTooltip="Visualizar"
+              tooltipPosition="bottom"
+              (click)="getPedidosDetalhe(ped)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table> -->
+  </div>
+</p-dialog>
