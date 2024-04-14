@@ -22,14 +22,41 @@ export class ConferenciaComponent implements OnInit {
     private pedidoServ: PedidosService
   ) {}
   ngOnInit(): void {
-    // !this.tokenService.getToken() || this.tokenService.getToken() === null
-    // ?
-    //Aqui o usuário inicia o fluxo de autenticação,
-    // this.userService.getAuthCode()
-    // :
-    //Se o bonito já tiver autenticado, então ele segue pra a tela onde ele escolherá oque ele quer da vida dele: Separação / Conferência
     this.getPedidos();
 
+    this.createChart();
+  }
+
+  getPedidos() {
+    this.pedidoServ.getPedidos().subscribe({
+      next: (data: any) => {
+        console.log('Pedidos', data);
+
+        this.dados = data.data;
+      },
+      error: (err: any) => {
+        this.tokenService.limparLocalStorage();
+        this.router.navigate(['/']);
+      },
+      complete: () => {},
+    });
+  }
+
+  getPedidosDetalhe() {
+    this.pedidoServ.getPedidosDetail(1).subscribe({
+      next: (data: any) => {
+        console.log('Pedido Detail', data);
+
+        this.dados.push(data);
+      },
+      error: (err: any) => {
+        console.log(err);
+      },
+      complete: () => {},
+    });
+  }
+
+  createChart() {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--text-color');
 
@@ -62,39 +89,5 @@ export class ConferenciaComponent implements OnInit {
         },
       },
     };
-  }
-
-  getPedidos() {
-    this.pedidoServ.getPedidos().subscribe({
-      next: (data: any) => {
-        console.log('Pedidos', data);
-
-        this.dados = data.data;
-        /* dataTemp.forEach((element:any) => {
-          //this.getPedidosDetalhe(element.id)
-        }) */
-        debugger;
-      },
-      error: (err: any) => {
-        debugger;
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
-      },
-      complete: () => {},
-    });
-  }
-
-  getPedidosDetalhe(id: string) {
-    this.pedidoServ.getPedidosDetail(id).subscribe({
-      next: (data: any) => {
-        console.log('Pedido Detail', data);
-
-        this.dados.push(data);
-      },
-      error: (err: any) => {
-        console.log(err);
-      },
-      complete: () => {},
-    });
   }
 }

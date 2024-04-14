@@ -80,7 +80,7 @@ export class PedidosService {
     return this.http.get(urlToken, { headers: header });
   }
 
-  getPedidosDetail(code: string) {
+  getPedidosDetail(code: number) {
     const urlToken = `/Api/v3/pedidos/vendas/${code}`;
     const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
