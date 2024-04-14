@@ -71,7 +71,6 @@ export class PedidosService {
 
   getPedidos() {
     const token: any = this.tokenService.getToken();
-    debugger;
 
     const urlToken = '/Api/v3/pedidos/vendas';
     const header = new HttpHeaders({
@@ -84,7 +83,6 @@ export class PedidosService {
   getPedidosDetail(code: string) {
     const urlToken = `/Api/v3/pedidos/vendas/${code}`;
     const token: any = this.tokenService.getToken();
-    debugger;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });

@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CookieService } from 'ngx-cookie-service';
-import { Config } from 'src/app/services/config';
 import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
@@ -9,7 +7,7 @@ import { UserService } from 'src/app/services/user.service';
 @Component({
   selector: 'app-separacao',
   templateUrl: './separacao.component.html',
-  styleUrls: ['./separacao.component.css'],
+  styleUrls: ['./separacao.component.scss'],
 })
 export class SeparacaoComponent implements OnInit {
   dados: any[] = [];
@@ -72,13 +70,8 @@ export class SeparacaoComponent implements OnInit {
         console.log('Pedidos', data);
 
         this.dados = data.data;
-        /* dataTemp.forEach((element:any) => {
-          //this.getPedidosDetalhe(element.id)
-        }) */
-        debugger;
       },
       error: (err: any) => {
-        debugger;
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
