@@ -12,9 +12,16 @@ import { PedidosService } from './services/pedidos.service';
 import { SharedModule } from './shared/shared.module';
 import { OpcoesComponent } from './modules/opcoes/opcoes.component';
 import { ConferenciaComponent } from './modules/conferencia/conferencia.component';
+import { LogisticasService } from './services/logisitica.service';
 
 @NgModule({
-  declarations: [AppComponent, AuthComponent, SeparacaoComponent, OpcoesComponent, ConferenciaComponent],
+  declarations: [
+    AppComponent,
+    AuthComponent,
+    SeparacaoComponent,
+    OpcoesComponent,
+    ConferenciaComponent,
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -22,7 +29,7 @@ import { ConferenciaComponent } from './modules/conferencia/conferencia.componen
     AppRoutingModule,
     HttpClientModule,
   ],
-  providers: [CookieService, PedidosService],
+  providers: [CookieService, PedidosService, LogisticasService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

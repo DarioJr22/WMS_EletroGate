@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LogisticasService } from 'src/app/services/logisitica.service';
 import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
@@ -24,6 +25,7 @@ export class SeparacaoComponent implements OnInit {
     // private cookie: CookieService,
     private userService: UserService,
     private tokenService: TokenService,
+    private logisticasService: LogisticasService,
     private router: Router,
     private pedidoServ: PedidosService
   ) {
@@ -59,8 +61,21 @@ export class SeparacaoComponent implements OnInit {
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
-        console.log('Pedido Detail', res);
+        // console.log('Pedido Detail', res);
+        // console.log('Pedido Detail', res.data.transporte.volumes[0].id);
         this.pedido = res.data;
+
+        this.logisticasService
+          .getLogisticaRemessa(res.data.transporte.volumes[0].id)
+          .subscribe({
+            next: (res) => {
+              console.log('--------------------------');
+              console.log(res);
+            },
+            error: (e) => {
+              console.log(e);
+            },
+          });
 
         this.visualizarDialog = true;
       },

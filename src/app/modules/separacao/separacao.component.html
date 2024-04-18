@@ -115,6 +115,8 @@
 <p-dialog
   header="Itens do Pedido"
   [(visible)]="visualizarDialog"
+  [draggable]="false"
+  [maximizable]="true"
   *ngIf="visualizarDialog"
   [modal]="true"
   [style]="{ width: '80vw' }"
