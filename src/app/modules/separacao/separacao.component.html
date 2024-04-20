@@ -80,7 +80,13 @@
     </div>
   </div>
   <div class="card">
-    <p-table [value]="dados" [tableStyle]="{ 'min-width': '50rem' }">
+    <p-table
+      [value]="dados"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [paginator]="true"
+      [rows]="10"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [rowsPerPageOptions]="[10,25,50]">
       <ng-template pTemplate="header">
         <tr>
           <th>Id</th>
@@ -97,7 +103,11 @@
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>
           <td>{{ item.contato.nome }}</td>
-          <td>{{ item.situacao.id }}</td>
+          <td >
+          <span class="situacoes" [style]="'background-color:' + getSitucaoStl(item.situacao.id)[1]">
+            {{getSitucaoStl(item.situacao.id)[0]}}
+          </span>
+          </td>
           <td>
             <p-button
               icon="pi pi-eye"
@@ -109,6 +119,12 @@
           </td>
         </tr>
       </ng-template>
+      <ng-template pTemplate="paginatorleft">
+        <p-button type="button" icon="pi pi-plus" styleClass="p-button-text"></p-button>
+    </ng-template>
+    <ng-template pTemplate="paginatorright">
+        <p-button type="button" icon="pi pi-cloud" styleClass="p-button-text"></p-button>
+    </ng-template>
     </p-table>
   </div>
 </div>
@@ -153,7 +169,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Modalidade de Envio </span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ "Não sei" }}</strong>
+            <strong>{{ modalidadeEnvio(pedido.transporte.volumes)}}</strong>
           </p>
         </div>
       </div>
@@ -183,6 +199,7 @@
               type="button"
               pButton
               pRipple
+              (click)="generateBarcode()"
               [pRowToggler]="ped"
               class="p-button-text p-button-rounded p-button-plain"
               [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
@@ -198,13 +215,26 @@
           <td>{{ ped.valor | currency : "BRL" }}</td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="rowexpansion" let-detail>
+      <ng-template ng-template pTemplate="rowexpansion" let-detail>
         <tr>
           <td colspan="7">
             <div class="p-3 border-round-sm surface-100 card grid">
-              <div class="col-10"><h1>código de barras</h1></div>
+              <div class="spacer" class="col-10">
+                <span class="wrapper-40x25">
+                    <div class="titleSKU" style="color: #000;margin-top:5px" #name></div>
+                    <div class="barcode-holder" style="color: #000;margin-top:15px">
+                      <img alt="codigoDeBarra" #barcodeElement>
+                    </div>
+                    <div class="footer">
+                      <span style="color: #000;font-size: 9px;" #sku></span>
+                      <span style="color: #000;font-size: 9px;" class="date">{{hoje |date:'dd/MM/yyyy'}}</span>
+                    </div>
+
+                </span>
+              </div>
               <div class="col-2 flex justify-content-center">
                 <p-button
+                  (click)="printElementId()"
                   severity="success"
                   label="Imprimir etiqueta"
                 ></p-button>

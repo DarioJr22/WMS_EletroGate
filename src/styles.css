@@ -26,3 +26,79 @@ hr {
 .padding-default {
   padding: 1rem 2rem;
 }
+
+/* Modulos de pedidos */
+.situacoes {
+  padding: 1rem;
+  border-radius: 1.5rem;
+  color: #fff;
+
+}
+
+
+h1, label{
+  color:#035110;
+  font-weight: bold;
+}
+
+/* Tamanho da etiqueta */
+.wrapper-40x25 {
+  width: 40mm;
+  height: 23mm;
+
+  padding: 0.0mm 1.5mm;
+  background-color: #fff;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.barcode-holder {
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 0.5mm;
+  height: 30px;
+  margin-left: 5px;
+}
+
+
+.titleSKU {
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  max-height: 6mm;
+  margin-left: 10px;
+}
+
+.barcode-holder {
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 0.5mm;
+  height: 30px;
+  margin-left: 5px;
+}
+
+
+.footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-left: 10px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+@page {
+  margin: 1mm;
+  margin-left: -4mm;
+}
+
+@page:first {
+  margin-top: -4mm;
+}
+
+@media print {
+
+/* Colocar configuração de print aqui */
+}
