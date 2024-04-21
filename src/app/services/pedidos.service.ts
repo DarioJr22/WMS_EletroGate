@@ -69,15 +69,19 @@ export class PedidosService {
     });
   }
 
-  getPedidos() {
+  getPedidos(
+    pagination?:{page:number, limit:number},
+    period?:{start:string, end:string}
+  ) {
     const token: any = this.tokenService.getToken();
 
-    const urlToken = '/Api/v3/pedidos/vendas';
+    const urlToken = `/Api/v3/pedidos/vendas?pagina=${pagination?.page}&limite=${pagination?.limit}&dataInicial=${period?.start}&dataFinal=${period?.end}`;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
+    console.log();
 
-    return this.http.get(urlToken, { headers: header });
+    return this.http.get(urlToken, { headers: header});
   }
 
   getPedidosDetail(id: number) {
@@ -88,5 +92,25 @@ export class PedidosService {
     });
 
     return this.http.get(urlToken, { headers: header });
+  }
+
+  getModule(){
+    const url = '/Api/v3/situacoes/modulos';
+    const token:any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get(url, {headers: header});
+  }
+
+  getSituations(id:number){
+    const url = `/Api/v3/situacoes/modulos/${id}`;
+    const token:any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get(url, {headers: header});
   }
 }

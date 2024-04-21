@@ -27,7 +27,17 @@ export class SeparacaoComponent implements OnInit {
   first = 0;
   rows = 10;
   hoje = new Date();
+  rangeDates:any
+  query = {
+    limit:100,
+    page:1,
+    start:'',
+    end:''
+  }
 
+  testes(){
+    console.log(this.form);
+  }
   @ViewChildren('barcodeElement') barcodeElements!: QueryList<ElementRef<HTMLImageElement>>;
   @ViewChildren('name') names!: QueryList<ElementRef<any>>;
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
@@ -50,6 +60,7 @@ export class SeparacaoComponent implements OnInit {
       numPedido: new FormControl(),
       numPedidoLojaVirtual: new FormControl(),
       numNotaFiscal: new FormControl(),
+      data: new FormControl(),
     });
   }
 
@@ -78,23 +89,17 @@ export class SeparacaoComponent implements OnInit {
       })
     }
 
-/*
-    printElement() {
-      const printContents = this.printableElement.nativeElement.innerHTML;
-      const originalContents = document.body.innerHTML;
-
-      document.body.innerHTML = printContents;
-      window.print();
-      document.body.innerHTML = originalContents;
-    }
- */
     printElementId(){
       window.print();
 
     }
 
   ngOnInit(): void {
-    this.getPedidos();
+
+    this.getPedidos(
+      {page:1, limit:100},
+      {start:'2024-01-01', end:'2024-04-20'}
+    );
     this.getModulo();
   }
 
@@ -135,17 +140,33 @@ export class SeparacaoComponent implements OnInit {
     return [situacao.nome,situacao.cor]
   }
 
-  getPedidos(pagination:any = { page:1,limit:5}) {
-    this.pedidoServ.getPedidos(pagination).subscribe({
+  getPedidos(pagination:any, data:any) {
+    this.pedidoServ.getPedidos(pagination,data).subscribe({
       next: (res: any) => {
-        console.log('Pedidos', res);
-        this.dados = res.data;
+        let result = [];
+        result = res.data;
+        if(result.length == 100){
+          console.log(result);
+
+          this.dados.push(result);
+          this.getPedidos(
+            {
+              page:pagination.page+1,
+              limit:pagination.limit
+            }
+            ,
+            data)
+        }else{
+          this.dados.push(result);
+        }
       },
       error: (err: any) => {
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
-      complete: () => {},
+      complete: () => {
+
+      },
     });
   }
 

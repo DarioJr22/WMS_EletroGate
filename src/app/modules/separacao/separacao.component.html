@@ -62,6 +62,20 @@
                 />
               </div>
             </div>
+            <div class="col-6">
+              <div class="flex flex-column gap-2">
+                <label for="username">Período</label>
+                  <p-calendar
+                  dateFormat="dd/mm/yy"
+                  [showIcon]="true"
+                  formControlName="data"
+                  (change)="testes()"
+                  selectionMode="range"
+                  [readonlyInput]="true">
+                </p-calendar>
+              </div>
+            </div>
+
           </div>
         </form>
         <div class="flex justify-content-end mt-2">
@@ -74,6 +88,7 @@
             severity="success"
             class="ml-3"
             label="Pesquisar"
+            (click)="testes()"
           ></p-button>
         </div>
       </div>
