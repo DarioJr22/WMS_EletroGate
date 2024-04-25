@@ -65,21 +65,21 @@
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Período</label>
-                  <p-calendar
+                <p-calendar
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
                   formControlName="data"
-                  (change)="testes()"
                   selectionMode="range"
-                  [readonlyInput]="true">
+                  [readonlyInput]="true"
+                >
                 </p-calendar>
               </div>
             </div>
-
           </div>
         </form>
         <div class="flex justify-content-end mt-2">
           <p-button
+            (click)="limpar()"
             label="Limpar"
             [outlined]="true"
             severity="danger"
@@ -87,21 +87,24 @@
           <p-button
             severity="success"
             class="ml-3"
+            (click)="buscarItemLista()"
             label="Pesquisar"
-            (click)="testes()"
           ></p-button>
         </div>
       </div>
     </div>
   </div>
+
   <div class="card">
     <p-table
-      [value]="dados"
+      [value]="dadosFilter"
       [tableStyle]="{ 'min-width': '50rem' }"
       [paginator]="true"
       [rows]="10"
+      (onPage)="pageChange($event)"
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-      [rowsPerPageOptions]="[10,25,50]">
+      [rowsPerPageOptions]="[10, 25, 50]"
+    >
       <ng-template pTemplate="header">
         <tr>
           <th>Id</th>
@@ -117,11 +120,16 @@
           <td>{{ item.id }}</td>
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>
-          <td>{{ item.contato.nome }}</td>
-          <td >
-          <span class="situacoes" [style]="'background-color:' + getSitucaoStl(item.situacao.id)[1]">
-            {{getSitucaoStl(item.situacao.id)[0]}}
-          </span>
+          <td>{{ item.contato?.nome }}</td>
+          <td>
+            <span
+              class="situacoes"
+              [style]="
+                'background-color:' + getSitucaoStl(item.situacao?.id)[1]
+              "
+            >
+              {{ getSitucaoStl(item.situacao?.id)[0] }}
+            </span>
           </td>
           <td>
             <p-button
@@ -134,12 +142,6 @@
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="paginatorleft">
-        <p-button type="button" icon="pi pi-plus" styleClass="p-button-text"></p-button>
-    </ng-template>
-    <ng-template pTemplate="paginatorright">
-        <p-button type="button" icon="pi pi-cloud" styleClass="p-button-text"></p-button>
-    </ng-template>
     </p-table>
   </div>
 </div>
@@ -184,7 +186,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Modalidade de Envio </span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ modalidadeEnvio(pedido.transporte.volumes)}}</strong>
+            <strong>{{ modalidadeEnvio(pedido.transporte.volumes) }}</strong>
           </p>
         </div>
       </div>
@@ -236,15 +238,23 @@
             <div class="p-3 border-round-sm surface-100 card grid">
               <div class="spacer" class="col-10">
                 <span class="wrapper-40x25">
-                    <div class="titleSKU" style="color: #000;margin-top:5px" #name></div>
-                    <div class="barcode-holder" style="color: #000;margin-top:15px">
-                      <img alt="codigoDeBarra" #barcodeElement>
-                    </div>
-                    <div class="footer">
-                      <span style="color: #000;font-size: 9px;" #sku></span>
-                      <span style="color: #000;font-size: 9px;" class="date">{{hoje |date:'dd/MM/yyyy'}}</span>
-                    </div>
-
+                  <div
+                    class="titleSKU"
+                    style="color: #000; margin-top: 5px"
+                    #name
+                  ></div>
+                  <div
+                    class="barcode-holder"
+                    style="color: #000; margin-top: 15px"
+                  >
+                    <img alt="codigoDeBarra" #barcodeElement />
+                  </div>
+                  <div class="footer">
+                    <span style="color: #000; font-size: 9px" #sku></span>
+                    <span style="color: #000; font-size: 9px" class="date">{{
+                      hoje | date : "dd/MM/yyyy"
+                    }}</span>
+                  </div>
                 </span>
               </div>
               <div class="col-2 flex justify-content-center">
