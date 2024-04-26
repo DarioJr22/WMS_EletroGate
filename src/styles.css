@@ -86,15 +86,18 @@ label {
   font-size: 13px;
 }
 
-@page {
-  margin: 1mm;
-  margin-left: -4mm;
-}
 
-@page: first{
-  margin-top: -4mm;
-};
 
 @media print {
-  /* Colocar configuração de print aqui */
+  body * {
+    visibility: hidden;
+  }
+  .wrapper-40x25, .wrapper-40x25 * {
+    visibility: visible;
+  }
+  .wrapper-40x25 {
+    position: fixed;
+    left: 0;
+    top: 0;
+  }
 }

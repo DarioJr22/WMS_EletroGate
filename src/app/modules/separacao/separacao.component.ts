@@ -50,6 +50,18 @@ interface Objeto {
 export class SeparacaoComponent implements OnInit {
   dadosFilter: Objeto[] = [];
   dados: Objeto[] = [];
+  expandedRows: { [key: string]: boolean } = {};
+  toggleRow(ped: any) {
+    this.expandedRows[ped.name] = !this.expandedRows[ped.name];
+  }
+
+  toggleAllRows() {
+    this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
+    this.generateBarcode();
+  }
+
+
+
 
   form: FormGroup;
 
@@ -75,7 +87,7 @@ export class SeparacaoComponent implements OnInit {
   >;
   @ViewChildren('name') names!: QueryList<ElementRef<any>>;
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
-  @ViewChildren('printElement') print!: QueryList<ElementRef<any>>;
+  @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
 
   constructor(
     // private cookie: CookieService,
@@ -96,10 +108,10 @@ export class SeparacaoComponent implements OnInit {
 
   /* Barcode */
   generateBarcode() {
-    let intervalo = interval(300);
+    let intervalo = interval(100);
     let subs = intervalo.subscribe((n) => {
       console.log(n);
-      if (n == 2) {
+      if (n == 4) {
         subs.unsubscribe();
       } else {
         this.barcodeElements
@@ -107,31 +119,184 @@ export class SeparacaoComponent implements OnInit {
           .forEach((el: ElementRef<HTMLImageElement>, idx) => {
             this.names.toArray()[idx].nativeElement.innerHTML =
               this.pedido.itens[idx].descricao;
-            this.skus.toArray()[idx].nativeElement.innerHTML =
+              this.skus.toArray()[idx].nativeElement.innerHTML =
               this.pedido.itens[idx].codigo;
-            JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
-              format: 'CODE128',
-              lineColor: '#000000',
-              textAlign: 'center',
-              width: 1,
-              height: 25,
-              margin: 0,
-              displayValue: false,
+              JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
+                format: 'CODE128',
+                lineColor: '#000000',
+                textAlign: 'center',
+                width: 1,
+                height: 25,
+                margin: 0,
+                displayValue: false,
+              });
             });
-          });
-      }
-    });
+          }
+        });
   }
 
   ngOnInit(): void {
+
     this.getPedidos(
       { page: 1, limit: 100 },
       { start: '2024-01-01', end: '2024-04-20' }
     );
     this.getModulo();
   }
-  printElementId() {
-    window.print();
+
+  printAll(){
+    //Abre os campos
+    this.toggleAllRows();
+    // Gera os códigos de barra
+    this.generateBarcode()
+    //Pega os elementos gerados nos códigos de barra
+    const printContents = this.print.toArray();
+    const content = printContents.map((el) => el.nativeElement.innerHTML).join(' \n');
+
+    console.log(content);
+
+    // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
+    const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    windowPrint!.document.write(`<html>
+    <header>
+      <title>Impressão de Etiquetas</title>
+      <style>
+      .wrapper-40x25 {
+        width: 40mm;
+        height: 23mm;
+
+        padding: 0mm 1.5mm;
+        background-color: #fff;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+    .barcode-holder {
+      text-align: center;
+      vertical-align: middle;
+      padding-top: 0.5mm;
+      height: 30px;
+      margin-left: 5px;
+    }
+
+    .titleSKU {
+      font-size: 10px;
+      font-weight: 700;
+      text-align: left;
+      max-height: 6mm;
+      margin-left: 10px;
+    }
+
+    .barcode-holder {
+      text-align: center;
+      vertical-align: middle;
+      padding-top: 0.5mm;
+      height: 30px;
+      margin-left: 5px;
+    }
+
+    .footer {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-left: 10px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    body{
+      font-family: 'Inter var', sans-serif;
+    }
+
+
+
+			.spacer {
+				margin: 0;
+				page-break-after: always;
+			}
+      </style>
+    </header>
+    <body>${content}</body>
+    </html>`);
+    windowPrint!.document.close();
+    windowPrint!.focus();
+
+    setTimeout(() => {
+      windowPrint!.print();
+      windowPrint!.close();
+    }, 250);
+  }
+
+  printElementId(element: HTMLElement) {
+    const printContents = element.innerHTML; // document.querySelector('#print')?.innerHTML;
+    console.log(printContents);
+      // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
+    const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    windowPrint!.document.write(`<html>
+    <header>
+      <title>Impressão de Etiquetas</title>
+      <style>
+      .wrapper-40x25 {
+        width: 40mm;
+        height: 23mm;
+
+        padding: 0mm 1.5mm;
+        background-color: #fff;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+    .barcode-holder {
+      text-align: center;
+      vertical-align: middle;
+      padding-top: 0.5mm;
+      height: 30px;
+      margin-left: 5px;
+    }
+
+    .titleSKU {
+      font-size: 10px;
+      font-weight: 700;
+      text-align: left;
+      max-height: 6mm;
+      margin-left: 10px;
+    }
+
+    .barcode-holder {
+      text-align: center;
+      vertical-align: middle;
+      padding-top: 0.5mm;
+      height: 30px;
+      margin-left: 5px;
+    }
+
+    .footer {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-left: 10px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    body{
+      font-family: 'Inter var', sans-serif;
+    }
+      </style>
+    </header>
+    <body>${printContents}</body>
+    </html>`);
+    windowPrint!.document.close();
+    windowPrint!.focus();
+
+    setTimeout(() => {
+      windowPrint!.print();
+      windowPrint!.close();
+    }, 250);
   }
 
   modalidadeEnvio(vol: any[]) {
@@ -352,7 +517,18 @@ export class SeparacaoComponent implements OnInit {
     // this.form.controls['numPedidoLojaVirtual'].value;
     // this.form.controls['numNotaFiscal'].value;
 
-    console.log(this.form.controls['data'].value);
+    if(this.form.controls['data'].value){
+      let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
+    }
+
+
+
+  }
+
+  convertDate(dateRange: Date[]) {
+    let dateIni = new Date(dateRange[0]).toISOString().split('T')[0];
+    let dateFin = new Date(dateRange[1]).toISOString().split('T')[0];
+    return {dateIni, dateFin};
   }
 
   limpar() {
