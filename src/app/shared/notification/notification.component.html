@@ -1,0 +1,20 @@
+<ng-container *ngFor="let n of notifications">
+  <p-panel>
+    <ng-template   pTemplate="header" style="padding: 0rem;">
+      <div [attr.class]="n.type"  class="flex align-items-center justify-content-between gap-2 w-100">
+        <span class="flex align-items-center gap-2">
+          <i style=" color: #fff;" *ngIf="n.type == 'sucesso'" class="pi pi-check"></i>
+          <i  style=" color: #fff;" *ngIf="n.type != 'sucesso'" class="pi pi-times"></i>
+          <span style=" color: #fff;" class="font-bold">{{n.type == 'sucesso' ? 'Sucesso' : 'Erro'}}</span>
+        </span>
+          <button class="p-panel-header-icon p-link mr-2" (click)="close(n.id)">
+            <span style=" color: #fff;" class="pi pi-times"></span>
+        </button>
+      </div>
+    </ng-template>
+
+    <p class="m-0">
+      {{n.message}}
+    </p>
+    </p-panel>
+</ng-container>

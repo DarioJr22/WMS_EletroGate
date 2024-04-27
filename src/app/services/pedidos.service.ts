@@ -113,4 +113,18 @@ export class PedidosService {
 
     return this.http.get(url, {headers: header});
   }
+
+  putOrderSit(idOrder:number, idSituation:number){
+    const url = `/Api/v3/pedidos/vendas/${idOrder}/situacoes/${idSituation}`;
+    const token:any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.patch(url, {
+      idPedidoVenda: idOrder,
+      idSituacao: idSituation
+    }, {headers: header});
+
+  }
 }

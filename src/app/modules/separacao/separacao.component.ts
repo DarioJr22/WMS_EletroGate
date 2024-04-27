@@ -10,9 +10,11 @@ import { Router } from '@angular/router';
 import * as JsBarcode from 'jsbarcode';
 import { interval } from 'rxjs';
 import { LogisticasService } from 'src/app/services/logisitica.service';
+import { NotificationType } from 'src/app/services/notification';
 import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
+import { NotificationService } from 'src/app/shared/notification/notification.service';
 interface Contato {
   id: number;
   nome: string;
@@ -51,20 +53,8 @@ export class SeparacaoComponent implements OnInit {
   dadosFilter: Objeto[] = [];
   dados: Objeto[] = [];
   expandedRows: { [key: string]: boolean } = {};
-  toggleRow(ped: any) {
-    this.expandedRows[ped.name] = !this.expandedRows[ped.name];
-  }
-
-  toggleAllRows() {
-    this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
-    this.generateBarcode();
-  }
-
-
-
-
+  isLoading:boolean = false
   form: FormGroup;
-
   data: any;
   options: any;
   pedido: any;
@@ -95,7 +85,8 @@ export class SeparacaoComponent implements OnInit {
     private tokenService: TokenService,
     private logisticasService: LogisticasService,
     private router: Router,
-    private pedidoServ: PedidosService
+    private pedidoServ: PedidosService,
+    private notify:NotificationService
   ) {
     this.form = new FormGroup({
       numCliente: new FormControl(),
@@ -107,39 +98,51 @@ export class SeparacaoComponent implements OnInit {
   }
 
   /* Barcode */
-  generateBarcode() {
+  generateBarcode():Promise<any> {
+    //Promise de criação do barcode
+    let promise = new Promise((result,reject) => {
+    // Observable que verifica se foi renderizado de 100 em 100 centézimos
     let intervalo = interval(100);
-    let subs = intervalo.subscribe((n) => {
+    // Subscriber para a observable
+    let subs = intervalo.subscribe(
+      {
+      next:(n) => {
       console.log(n);
-      if (n == 4) {
-        subs.unsubscribe();
-      } else {
-        this.barcodeElements
-          .toArray()
-          .forEach((el: ElementRef<HTMLImageElement>, idx) => {
-            this.names.toArray()[idx].nativeElement.innerHTML =
-              this.pedido.itens[idx].descricao;
-              this.skus.toArray()[idx].nativeElement.innerHTML =
-              this.pedido.itens[idx].codigo;
-              JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
-                format: 'CODE128',
-                lineColor: '#000000',
-                textAlign: 'center',
-                width: 1,
-                height: 25,
-                margin: 0,
-                displayValue: false,
+        if (n == 4) {
+          subs.unsubscribe();
+        } else {
+          this.barcodeElements
+            .toArray()
+            .forEach((el: ElementRef<HTMLImageElement>, idx) => {
+              this.names.toArray()[idx].nativeElement.innerHTML =
+                this.pedido.itens[idx].descricao;
+                this.skus.toArray()[idx].nativeElement.innerHTML =
+                this.pedido.itens[idx].codigo;
+                JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
+                  format: 'CODE128',
+                  lineColor: '#000000',
+                  textAlign: 'center',
+                  width: 1,
+                  height: 25,
+                  margin: 0,
+                  displayValue: false,
+                });
               });
-            });
+            result(true);
           }
-        });
+        },error:(err) => {
+          reject(err)
+        }});
+      })
+
+      return promise
   }
 
   ngOnInit(): void {
 
     this.getPedidos(
       { page: 1, limit: 100 },
-      { start: '2024-01-01', end: '2024-04-20' }
+      { start: '2024-01-01', end: '2024-04-27' }
     );
     this.getModulo();
   }
@@ -147,91 +150,93 @@ export class SeparacaoComponent implements OnInit {
   printAll(){
     //Abre os campos
     this.toggleAllRows();
-    // Gera os códigos de barra
-    this.generateBarcode()
-    //Pega os elementos gerados nos códigos de barra
-    const printContents = this.print.toArray();
-    const content = printContents.map((el) => el.nativeElement.innerHTML).join(' \n');
+    // Gera os códigos de barra | Aguarda a promisse ser resolvida para imprimir o código de barras
+    this.generateBarcode().then(() => {
+      //Imprime os códigos de barra
+      //Pega os elementos gerados nos códigos de barra
+      const printContents = this.print.toArray();
+      const content = printContents.map((el) => el.nativeElement.innerHTML).join(' \n');
 
-    console.log(content);
+      console.log(content);
 
-    // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
-    const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-    windowPrint!.document.write(`<html>
-    <header>
-      <title>Impressão de Etiquetas</title>
-      <style>
-      .wrapper-40x25 {
-        width: 40mm;
-        height: 23mm;
+      // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
+      const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+      windowPrint!.document.write(`<html>
+      <header>
+        <title>Impressão de Etiquetas</title>
+        <style>
+        .wrapper-40x25 {
+          width: 40mm;
+          height: 23mm;
 
-        padding: 0mm 1.5mm;
-        background-color: #fff;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+          padding: 0mm 1.5mm;
+          background-color: #fff;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+      .barcode-holder {
+        text-align: center;
+        vertical-align: middle;
+        padding-top: 0.5mm;
+        height: 30px;
+        margin-left: 5px;
       }
 
-    .barcode-holder {
-      text-align: center;
-      vertical-align: middle;
-      padding-top: 0.5mm;
-      height: 30px;
-      margin-left: 5px;
-    }
+      .titleSKU {
+        font-size: 10px;
+        font-weight: 700;
+        text-align: left;
+        max-height: 6mm;
+        margin-left: 10px;
+      }
 
-    .titleSKU {
-      font-size: 10px;
-      font-weight: 700;
-      text-align: left;
-      max-height: 6mm;
-      margin-left: 10px;
-    }
+      .barcode-holder {
+        text-align: center;
+        vertical-align: middle;
+        padding-top: 0.5mm;
+        height: 30px;
+        margin-left: 5px;
+      }
 
-    .barcode-holder {
-      text-align: center;
-      vertical-align: middle;
-      padding-top: 0.5mm;
-      height: 30px;
-      margin-left: 5px;
-    }
+      .footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-left: 10px;
+        font-weight: 700;
+        font-size: 13px;
+      }
 
-    .footer {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      margin-left: 10px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    body{
-      font-family: 'Inter var', sans-serif;
-    }
+      body{
+        font-family: 'Inter var', sans-serif;
+      }
 
 
 
-			.spacer {
-				margin: 0;
-				page-break-after: always;
-			}
-      </style>
-    </header>
-    <body>${content}</body>
-    </html>`);
-    windowPrint!.document.close();
-    windowPrint!.focus();
+        .spacer {
+          margin: 0;
+          page-break-after: always;
+        }
+        </style>
+      </header>
+      <body>${content}</body>
+      </html>`);
+      windowPrint!.document.close();
+      windowPrint!.focus();
 
-    setTimeout(() => {
-      windowPrint!.print();
-      windowPrint!.close();
-    }, 250);
+      setTimeout(() => {
+        windowPrint!.print();
+        windowPrint!.close();
+      }, 250);
+
+      })
   }
 
   printElementId(element: HTMLElement) {
     const printContents = element.innerHTML; // document.querySelector('#print')?.innerHTML;
-    console.log(printContents);
       // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
     const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
     windowPrint!.document.write(`<html>
@@ -313,8 +318,7 @@ export class SeparacaoComponent implements OnInit {
         this.getSituacoes(id);
       },
       error: (err: any) => {
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
+        console.log(err);
       },
     });
   }
@@ -323,9 +327,13 @@ export class SeparacaoComponent implements OnInit {
     this.pedidoServ.getSituations(id).subscribe({
       next: (res: any) => {
         this.situacoes = res.data;
+        console.log(this.situacoes);
+
         this.createChart();
       },
       error: (err: any) => {
+        console.log(err);
+
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
@@ -339,6 +347,17 @@ export class SeparacaoComponent implements OnInit {
     }
     return '';
   }
+
+  putSituation(orderId:number,situationId:number){
+    this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
+      next:(result:any) =>{
+        console.log(result);
+      },
+      error: (err:any)=>{
+        console.log(err);
+      }
+    })
+  }
   getPedidos(pagination: any, data: any) {
     this.pedidoServ.getPedidos(pagination, data).subscribe({
       next: (res: any) => {
@@ -347,43 +366,50 @@ export class SeparacaoComponent implements OnInit {
           itens.push(...res.data);
           this.dados = itens;
           this.dadosFilter = itens;
+
         } else {
           this.dados.push(...res.data);
         }
+
+
+
       },
       error: (err: any) => {
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
-      complete: () => {},
+      complete: () => {
+
+        this.notify.notify({
+          message: 'Deu certo pow',
+          type: NotificationType.ERROR,
+
+        })
+      },
     });
   }
 
-  getDetalhePedido(item?: any) {
+ getDetalhePedido(item?: any) {
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
-        this.logisticasService
-          .getLogisticaRemessa(res.data.transporte.volumes[0].id)
-          .subscribe({
-            next: (res) => {
-              console.log('--------------------------');
-              console.log(res);
-            },
-            error: (e) => {
-              console.log(e);
-            },
-          });
+
 
         this.visualizarDialog = true;
+        this.generateBarcode().then();
+        //Id do pedido | Id da situação - Em separação
+        this.putSituation(item.id,223260)
       },
       error: (err: any) => {
         this.visualizarDialog = false;
         console.log(err);
       },
-      complete: () => {},
+      complete: () => {
+
+      },
     });
+
   }
 
   createChart() {
@@ -534,5 +560,14 @@ export class SeparacaoComponent implements OnInit {
   limpar() {
     this.dadosFilter = this.dados;
     this.form.reset();
+  }
+
+  toggleRow(ped: any) {
+    this.expandedRows[ped.name] = !this.expandedRows[ped.name];
+  }
+
+ async toggleAllRows() {
+    this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
+    await this.generateBarcode();
   }
 }
