@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
@@ -131,5 +131,13 @@ export class PedidosService {
       idSituacao: idSituation
     }, {headers: header});
 
+  }
+
+  handleError(error: HttpErrorResponse) {
+   let titulo = error.error.error.description;
+   let fields = error.error.error.fields ? error.error.error.fields.map((i:any) => `- ${i.msg} \n`): 'Sem campos' ;
+   return `${titulo} \n
+   Campo(s):
+   \n ${fields}`
   }
 }

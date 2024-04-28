@@ -179,7 +179,7 @@ import { CommonModule } from '@angular/common';
   providers: [
     MessageService,
     ConfirmationService,
-    { provide: 'ttlDefault', useValue: 115000 }
+    { provide: 'ttlDefault', useValue: 5000 }
   ],
 })
 export class SharedModule {}

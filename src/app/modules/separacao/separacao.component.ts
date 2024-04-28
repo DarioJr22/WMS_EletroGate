@@ -108,7 +108,6 @@ export class SeparacaoComponent implements OnInit {
     let subs = intervalo.subscribe(
       {
       next:(n) => {
-      console.log(n);
         if (n == 4) {
           subs.unsubscribe();
         } else {
@@ -133,6 +132,7 @@ export class SeparacaoComponent implements OnInit {
           }
         },error:(err) => {
           reject(err)
+          this.notify.notify({message: `Erro: ${err}`, type: NotificationType.ERROR});
         }});
       })
 
@@ -140,10 +140,14 @@ export class SeparacaoComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    //Seta o range de datas de hoje até 30 dias atrás
+    this.getInitialDateRange();
+    //Obtem os dados inicial e final
+    let dataIni, dataFin = this.convertDate(this.form.controls['data'].value);
+    //Obtem os dados de pedidos
     this.getPedidos(
       { page: 1, limit: 100 },
-      { start: '2024-01-01', end: '2024-04-27' },
+      { start: dataIni, end: dataFin },
       [situacoes[9].id,situacoes[8].id]
     );
     this.getModulo();
@@ -165,7 +169,7 @@ export class SeparacaoComponent implements OnInit {
       const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
       windowPrint!.document.write(`<html>
       <header>
-        <title>Impressão de Etiquetas</title>
+        <title>Impressão de Etiquetas - ${this.pedido.id}</title>
         <style>
         .wrapper-40x25 {
           width: 40mm;
@@ -243,7 +247,7 @@ export class SeparacaoComponent implements OnInit {
     const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
     windowPrint!.document.write(`<html>
     <header>
-      <title>Impressão de Etiquetas</title>
+      <title>Impressão de Etiquetas - ${this.pedido.id}</title>
       <style>
       .wrapper-40x25 {
         width: 40mm;
@@ -310,17 +314,31 @@ export class SeparacaoComponent implements OnInit {
     return vol.map((i: any) => `${i.id} - ${i.servico}`);
   }
 
+  /**
+   * A function that retrieves the module using pedidoServ,
+   * subscribes to the response to handle the next and error cases,
+   * and triggers the getSituacoes function based on the module ID obtained.
+   *
+   * @return {void} No return value
+   */
   getModulo() {
     this.pedidoServ.getModule().subscribe({
       next: (res: any) => {
+        //Obtem os módulos da aplicação
         let retorno: any = [];
         let id = 0;
         retorno = res.data;
-        id = retorno.find((i: any) => i.nome == 'Vendas').id;
+
+        //Recupera o módulo de vendas
+        id = retorno.find((i: any) => i.nome == 'Vendas').id  ;
+        //Usao para obter as situações do módulo
         this.getSituacoes(id);
       },
       error: (err: any) => {
-        console.log(err);
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR
+        })
       },
     });
   }
@@ -334,7 +352,10 @@ export class SeparacaoComponent implements OnInit {
         this.createChart();
       },
       error: (err: any) => {
-        console.log(err);
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR
+        })
 
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
@@ -351,6 +372,7 @@ export class SeparacaoComponent implements OnInit {
   }
 
   putSituation(orderId:number,situationId:number){
+
     let situacao = situacoes.find((i) => i.id == situationId);
     this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
       next:(result:any) =>{
@@ -358,16 +380,37 @@ export class SeparacaoComponent implements OnInit {
           message: `Situação alterada: ${situacao?.nome}`,
           type: NotificationType.SUCSESS,
         })
+        if(situacao?.nome != '[Em separação]' ){
+            this.visualizarDialog = false;
+            this.dados = []
+            this.dadosFilter = []
+            let dataIni, dataFin = this.convertDate(this.form.controls['data'].value)
+            this.getPedidos(
+              { page: 1, limit: 100 },
+              { start: dataIni, end: dataFin },
+              [situacoes[9].id,situacoes[8].id]
+            )
+        }
       },
       error: (err:any)=>{
         this.notify.notify({
-          message: 'Erro ao mudar o status do pedido !',
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         })
       }
     })
   }
+
+
+  /**
+   * Retrieves the list of pedidos based on the provided pagination, data, and situacoes.
+   *
+   * @param {any} pagination - The pagination options for the request.
+   * @param {any} data - The data options for the request.
+   * @param {number[]} situacoes - The list of situacoes to filter the pedidos.
+   */
   getPedidos(pagination: any, data: any,situacoes:number[]) {
+    this.isLoading = true;
     this.pedidoServ.getPedidos(pagination, data,situacoes).subscribe({
       next: (res: any) => {
 
@@ -380,27 +423,32 @@ export class SeparacaoComponent implements OnInit {
       },
       error: (err: any) => {
 
-        this.notify.notify({
-        message: 'Deu certo pow',
-        type: NotificationType.ERROR,
-      })
+          this.notify.notify({
+          message: this.pedidoServ.handleError(err),
+          type: NotificationType.ERROR,
+        })
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
+        this.isLoading = false;
       },
       complete: () => {
-
+        this.isLoading = false;
 
       },
     });
   }
 
+   /**
+    * Retrieves the details of a specific pedido.
+    *
+    * @param {any} item - The item for which to retrieve the details.
+    * @return {void} This function does not return anything.
+    */
  getDetalhePedido(item?: any) {
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
-
-
         this.visualizarDialog = true;
         this.generateBarcode().then();
         //Id do pedido | Id da situação - Em separação
@@ -415,7 +463,10 @@ export class SeparacaoComponent implements OnInit {
       },
       error: (err: any) => {
         this.visualizarDialog = false;
-        console.log(err);
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
       },
       complete: () => {
 
@@ -582,6 +633,30 @@ export class SeparacaoComponent implements OnInit {
     this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
     await this.generateBarcode().then();
   }
+
+  onVisibleChange(ev:any){
+    this.dados = [];
+    this.dadosFilter = [];
+    this.getInitialDateRange();
+    let dataIni, dataFin = this.convertDate(this.form.controls['data'].value)
+    this.getPedidos(
+      { page: 1, limit: 100 },
+      { start: dataIni, end: dataFin },
+      [situacoes[9].id,situacoes[8].id]
+    )
+  }
+
+  getDateRange(dias:number){
+    //Seta um range datas de hoje até 30 dias atrás
+    return [new Date(new Date().setDate(new Date().getDate() - dias)), new Date()]
+  }
+
+  getInitialDateRange(){
+    //Seta um range datas de hoje até 30 dias atrás
+    this.form.controls['data'].setValue(this.getDateRange(30));
+  }
+
+
 
 
 }

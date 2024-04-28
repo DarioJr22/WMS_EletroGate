@@ -141,12 +141,16 @@ this.getPedidos()
           message: `Situação alterada: ${situacao?.nome}`,
           type: NotificationType.SUCSESS,
         })
+
+
       },
       error: (err:any)=>{
         this.notify.notify({
-          message: 'Erro ao mudar o status do pedido !',
+          message: 'Erro ao mudar o status do pedido ! ' + err,
           type: NotificationType.ERROR,
         })
+        console.log(err);
+
       }
     })
   }

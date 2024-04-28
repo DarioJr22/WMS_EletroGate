@@ -14,13 +14,13 @@
   </div>
 
   <div class="card">
-    <div class="grid align-items-center">
-      <div class="col-4">
+    <div class="grid align-items-center justify-content-center">
+      <div class="col-lg-4 col-md-12 col-md-12">
         <div class="card flex justify-content-center">
           <p-chart type="doughnut" [data]="data" [options]="options"></p-chart>
         </div>
       </div>
-      <div class="col-8">
+      <div class="col-8 col-md-12 col-md-12 justify-content-center w-100">
         <form [formGroup]="form">
           <div class="grid">
             <div class="col-6">
@@ -47,7 +47,7 @@
             </div>
             <div class="col-6">
               <div class="flex flex-column gap-2">
-                <label for="username">Nº do Pedido - Loja Virtual</label>
+                <label style="overflow: hidden; white-space: nowrap;" for="username">Nº do Pedido - Loja Virtual</label>
                 <input
                   pInputText
                   formControlName="numPedidoLojaVirtual"
@@ -165,6 +165,7 @@
 </div>
 <p-dialog
   header="Itens do Pedido"
+  (visibleChange)="onVisibleChange($event)"
   [(visible)]="visualizarDialog"
   [draggable]="false"
   [maximizable]="true"
