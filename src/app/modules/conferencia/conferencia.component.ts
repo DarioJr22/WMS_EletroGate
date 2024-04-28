@@ -8,6 +8,7 @@ import { UserService } from 'src/app/services/user.service';
 import { LogisticasService } from '../../services/logisitica.service';
 import { NotificationType } from 'src/app/services/notification';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
+import { BuscaParams } from 'src/app/shared/params';
 
 @Component({
   selector: 'app-conferencia',
@@ -31,7 +32,7 @@ export class ConferenciaComponent implements OnInit {
     private router: Router,
     private pedidoServ: PedidosService,
     private logisticasService: LogisticasService,
-    private notify:NotificationService
+    private notify: NotificationService
   ) {
     this.createChart();
 
@@ -44,15 +45,17 @@ export class ConferenciaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-this.getPedidos()
+    this.getPedidos();
   }
 
   getPedidos() {
-    this.pedidoServ.getPedidos(
-      { page: 1, limit: 100 },
-      { start: '2024-01-01', end: '2024-04-27' },
-      [223275]
-    ).subscribe({
+    let params = new BuscaParams();
+
+    params.pagination = { page: 1, limit: 100 };
+    params.period = { start: '2024-01-01', end: '2024-04-27' };
+    params.situations = [223275];
+
+    this.pedidoServ.getPedidos(params).subscribe({
       next: (res: any) => {
         console.log('Pedidos', res);
         this.dados = res.data;
@@ -65,17 +68,18 @@ this.getPedidos()
     });
   }
 
-  getEtiquete(pedido:number[]){
+  getEtiquete(pedido: number[]) {
     this.logisticasService.getEtiquetaDeTransporte(pedido).subscribe({
       next: (res: any) => {
         console.log('Etiquetas', res);
         let result = [];
         result = res.data;
-        result.map((et:{id:number,link:string,observacao:string}) =>  window.open(et.link)) // window.open(et.link,'_blank'))
+        result.map((et: { id: number; link: string; observacao: string }) =>
+          window.open(et.link)
+        ); // window.open(et.link,'_blank'))
       },
       error: (err: any) => {
         console.log(err);
-
       },
       complete: () => {},
     });
@@ -133,21 +137,33 @@ this.getPedidos()
     };
   }
 
-  putSituation(orderId:number,situationId:number){
+  putSituation(orderId: number, situationId: number) {
     let situacao = situacoes.find((i) => i.id == situationId);
-    this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
-      next:(result:any) =>{
+    this.pedidoServ.putOrderSit(orderId, situationId).subscribe({
+      next: (result: any) => {
         this.notify.notify({
           message: `Situação alterada: ${situacao?.nome}`,
           type: NotificationType.SUCSESS,
-        })
+        });
       },
-      error: (err:any)=>{
+      error: (err: any) => {
         this.notify.notify({
           message: 'Erro ao mudar o status do pedido !',
           type: NotificationType.ERROR,
-        })
+        });
+      },
+    });
+  }
+
+  getSitucaoStl(id: number) {
+    let situacao = this.situacoes.find((i) => i.id == id);
+    if (situacao) {
+      if (situacao.id == 223275) {
+        return [situacao.nome, situacao.cor, '#000'];
       }
-    })
+      debugger;
+      return [situacao.nome, situacao.cor, '#fff'];
+    }
+    return '';
   }
 }

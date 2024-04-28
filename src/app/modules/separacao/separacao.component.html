@@ -1,7 +1,7 @@
 <div class="padding-default">
   <div class="flex justify-content-between m-3 p-3">
     <span class="flex align-items-center gap-4">
-      <i class="pi pi-box" style="transform: scale(3); color: #035110;"></i>
+      <i class="pi pi-box" style="transform: scale(3); color: #035110"></i>
       <h1>Separação</h1>
     </span>
 
@@ -56,7 +56,7 @@
                 />
               </div>
             </div>
-           <!--  <div class="col-6">
+            <!--  <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº da Nota Fiscal</label>
                 <input
@@ -67,11 +67,12 @@
                 />
               </div>
             </div> -->
+
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Período</label>
                 <p-calendar
-                class="w-100"
+                  class="w-100"
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
                   formControlName="data"
@@ -144,21 +145,21 @@
           </td>
           <td>
             <p-button
-            severity="success"
+              severity="success"
               icon="pi pi-external-link"
               [rounded]="true"
               pTooltip="Separar pedido"
               tooltipPosition="bottom"
-              (click)="getDetalhePedido(item);"
+              (click)="getDetalhePedido(item)"
             ></p-button>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-            <td colspan="7">  Nemhum pedido encontrado.</td>
+          <td colspan="7">Nemhum pedido encontrado.</td>
         </tr>
-    </ng-template>
+      </ng-template>
     </p-table>
   </div>
   <notification></notification>
@@ -211,74 +212,89 @@
     </div>
     <hr />
 
-    <p-table [value]="pedido.itens" dataKey="name" [tableStyle]="{ 'min-width': '60rem' }">
+    <p-table
+      [value]="pedido.itens"
+      dataKey="name"
+      [tableStyle]="{ 'min-width': '60rem' }"
+    >
       <ng-template pTemplate="header">
-          <tr>
-              <th style="width: 5rem">
-                  <!-- <button (click)="toggleAllRows()" pButton pRipple class="p-button-text">
+        <tr>
+          <th style="width: 5rem">
+            <!-- <button (click)="toggleAllRows()" pButton pRipple class="p-button-text">
                       Toggle All
                   </button> -->
-              </th>
-              <th>Descrição</th>
-              <th>Código</th>
-              <th>Quantidade</th>
-              <th>Valor</th>
-          </tr>
+          </th>
+          <th>Descrição</th>
+          <th>Código</th>
+          <th>Quantidade</th>
+          <th>Valor</th>
+        </tr>
       </ng-template>
       <ng-template pTemplate="body" let-ped>
-          <tr>
-              <td>
-                  <button
-                      type="button"
-                      pButton
-                      pRipple
-                      (click)="toggleRow(ped);generateBarcode()"
-                      class="p-button-text p-button-rounded p-button-plain"
-                      [icon]="expandedRows[ped.name] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                  ></button>
-              </td>
-              <td>{{ ped.descricao }}</td>
-              <td>{{ ped.codigo }}</td>
-              <td>{{ ped.quantidade }}</td>
-              <td>{{ ped.valor | currency:'BRL' }}</td>
-          </tr>
-          <tr *ngIf="expandedRows[ped.name]" class="expansion-detail">
-             <td colspan="7">
-                <div class="p-3 border-round-sm surface-100 card grid">
-                    <div #elementPrint [id]="'print'" class="col-10">
-                        <span class="spacer wrapper-40x25">
-                            <div
-                                class="titleSKU"
-                                style="color: #000; margin-top: 5px"
-                                #name
-                            ></div>
-                            <div
-                                class="barcode-holder"
-                                style="color: #000; margin-top: 15px"
-                            >
-                                <img alt="codigoDeBarra" #barcodeElement />
-                            </div>
-                            <div class="footer">
-                                <span style="color: #000; font-size: 9px" #sku></span>
-                                <span style="color: #000; font-size: 9px" class="date">{{ hoje | date : "dd/MM/yyyy" }}</span>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="col-2 flex justify-content-center">
-                        <p-button
-                            (click)="printElementId(elementPrint)"
-                            severity="success"
-                            label="Imprimir etiqueta"
-                        ></p-button>
-                    </div>
-                </div>
-          </tr>
+        <tr>
+          <td>
+            <button
+              type="button"
+              pButton
+              pRipple
+              (click)="toggleRow(ped); generateBarcode()"
+              class="p-button-text p-button-rounded p-button-plain"
+              [icon]="
+                expandedRows[ped.name]
+                  ? 'pi pi-chevron-down'
+                  : 'pi pi-chevron-right'
+              "
+            ></button>
+          </td>
+          <td>{{ ped.descricao }}</td>
+          <td>{{ ped.codigo }}</td>
+          <td>{{ ped.quantidade }}</td>
+          <td>{{ ped.valor | currency : "BRL" }}</td>
+        </tr>
+        <tr *ngIf="expandedRows[ped.name]" class="expansion-detail">
+          <td colspan="7">
+            <div class="p-3 border-round-sm surface-100 card grid">
+              <div #elementPrint [id]="'print'" class="col-10">
+                <span class="spacer wrapper-40x25">
+                  <div
+                    class="titleSKU"
+                    style="color: #000; margin-top: 5px"
+                    #name
+                  ></div>
+                  <div
+                    class="barcode-holder"
+                    style="color: #000; margin-top: 15px"
+                  >
+                    <img alt="codigoDeBarra" #barcodeElement />
+                  </div>
+                  <div class="footer">
+                    <span style="color: #000; font-size: 9px" #sku></span>
+                    <span style="color: #000; font-size: 9px" class="date">{{
+                      hoje | date : "dd/MM/yyyy"
+                    }}</span>
+                  </div>
+                </span>
+              </div>
+              <div class="col-2 flex justify-content-center">
+                <p-button
+                  (click)="printElementId(elementPrint)"
+                  severity="success"
+                  label="Imprimir etiqueta"
+                ></p-button>
+              </div>
+            </div>
+          </td>
+        </tr>
       </ng-template>
-  </p-table>
+    </p-table>
     <div class="flex gap-3 justify-content-center p-3">
-      <p-button severity="success" (click)="printAll()" label="Imprimir todas as etiquetas"></p-button>
       <p-button
-        (click)="putSituation(pedido.id,situacoes[10].id)"
+        severity="success"
+        (click)="printAll()"
+        label="Imprimir todas as etiquetas"
+      ></p-button>
+      <p-button
+        (click)="putSituation(pedido.id, situacoes[10].id)"
         severity="success"
         label="Liberar para conferência"
         [outlined]="true"

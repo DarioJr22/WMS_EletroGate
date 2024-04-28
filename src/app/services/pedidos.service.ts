@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { Config } from './config';
 import { TokenService } from './token.service';
+import { BuscaParams } from '../shared/params';
 
 //Sem o code
 
@@ -69,24 +70,23 @@ export class PedidosService {
     });
   }
 
-  getPedidos(
-    pagination?:{page:number, limit:number},
-    period?:{start:string, end:string},
-    situacoes?:number[]
-  ) {
+  getPedidos(params: BuscaParams) {
     const token: any = this.tokenService.getToken();
 
-    const urlToken = `/Api/v3/pedidos/vendas?pagina=${pagination?.page}
-    &limite=${pagination?.limit}
-    &dataInicial=${period?.start}
-    &dataFinal=${period?.end}
-    &idsSituacoes=${situacoes}`;
+    const urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}
+      &limite=${params?.pagination?.limit}
+      &idContato=${params.idContato}
+      &idLoja=${params.idLoja}
+      &numero=${params.numero}
+      &dataInicial=${params?.period?.start}
+      &dataFinal=${params?.period?.end}
+      &idsSituacoes=${params?.situations}`;
+
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
-    console.log();
 
-    return this.http.get(urlToken, { headers: header});
+    return this.http.get(urlToken, { headers: header });
   }
 
   getPedidosDetail(id: number) {
@@ -99,37 +99,40 @@ export class PedidosService {
     return this.http.get(urlToken, { headers: header });
   }
 
-  getModule(){
+  getModule() {
     const url = '/Api/v3/situacoes/modulos';
-    const token:any = this.tokenService.getToken();
+    const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
+    });
 
-    return this.http.get(url, {headers: header});
+    return this.http.get(url, { headers: header });
   }
 
-  getSituations(id:number){
+  getSituations(id: number) {
     const url = `/Api/v3/situacoes/modulos/${id}`;
-    const token:any = this.tokenService.getToken();
+    const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
+    });
 
-    return this.http.get(url, {headers: header});
+    return this.http.get(url, { headers: header });
   }
 
-  putOrderSit(idOrder:number, idSituation:number){
+  putOrderSit(idOrder: number, idSituation: number) {
     const url = `/Api/v3/pedidos/vendas/${idOrder}/situacoes/${idSituation}`;
-    const token:any = this.tokenService.getToken();
+    const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
+    });
 
-    return this.http.patch(url, {
-      idPedidoVenda: idOrder,
-      idSituacao: idSituation
-    }, {headers: header});
-
+    return this.http.patch(
+      url,
+      {
+        idPedidoVenda: idOrder,
+        idSituacao: idSituation,
+      },
+      { headers: header }
+    );
   }
 }

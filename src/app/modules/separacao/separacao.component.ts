@@ -16,6 +16,7 @@ import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
+import { BuscaParams } from 'src/app/shared/params';
 interface Contato {
   id: number;
   nome: string;
@@ -51,7 +52,6 @@ interface Objeto {
   styleUrls: ['./separacao.component.scss'],
 })
 export class SeparacaoComponent implements OnInit {
-
   //Entidades
   dadosFilter: Objeto[] = [];
   dados: Objeto[] = [];
@@ -64,8 +64,7 @@ export class SeparacaoComponent implements OnInit {
   expandedRows: { [key: string]: boolean } = {};
 
   //
-  isLoading:boolean = false
-
+  isLoading: boolean = false;
 
   visualizarDialog = false;
   first = 0;
@@ -87,7 +86,7 @@ export class SeparacaoComponent implements OnInit {
     private logisticasService: LogisticasService,
     private router: Router,
     private pedidoServ: PedidosService,
-    private notify:NotificationService
+    private notify: NotificationService
   ) {
     this.form = new FormGroup({
       numCliente: new FormControl(),
@@ -99,26 +98,25 @@ export class SeparacaoComponent implements OnInit {
   }
 
   /* Barcode */
-  generateBarcode():Promise<any> {
+  generateBarcode(): Promise<any> {
     //Promise de criação do barcode
-    let promise = new Promise((result,reject) => {
-    // Observable que verifica se foi renderizado de 100 em 100 centézimos
-    let intervalo = interval(100);
-    // Subscriber para a observable
-    let subs = intervalo.subscribe(
-      {
-      next:(n) => {
-      console.log(n);
-        if (n == 4) {
-          subs.unsubscribe();
-        } else {
-          this.barcodeElements
-            .toArray()
-            .forEach((el: ElementRef<HTMLImageElement>, idx) => {
-              this.names.toArray()[idx].nativeElement.innerHTML =
-                this.pedido.itens[idx].descricao;
+    let promise = new Promise((result, reject) => {
+      // Observable que verifica se foi renderizado de 100 em 100 centézimos
+      let intervalo = interval(100);
+      // Subscriber para a observable
+      let subs = intervalo.subscribe({
+        next: (n) => {
+          console.log(n);
+          if (n == 4) {
+            subs.unsubscribe();
+          } else {
+            this.barcodeElements
+              .toArray()
+              .forEach((el: ElementRef<HTMLImageElement>, idx) => {
+                this.names.toArray()[idx].nativeElement.innerHTML =
+                  this.pedido.itens[idx].descricao;
                 this.skus.toArray()[idx].nativeElement.innerHTML =
-                this.pedido.itens[idx].codigo;
+                  this.pedido.itens[idx].codigo;
                 JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
                   format: 'CODE128',
                   lineColor: '#000000',
@@ -131,25 +129,32 @@ export class SeparacaoComponent implements OnInit {
               });
             result(true);
           }
-        },error:(err) => {
-          reject(err)
-        }});
-      })
+        },
+        error: (err) => {
+          reject(err);
+        },
+      });
+    });
 
-      return promise
+    return promise;
   }
 
   ngOnInit(): void {
+    let params = new BuscaParams();
 
-    this.getPedidos(
-      { page: 1, limit: 100 },
-      { start: '2024-01-01', end: '2024-04-27' },
-      [situacoes[9].id,situacoes[8].id]
-    );
+    params.pagination = { page: 1, limit: 100 };
+    params.period = { end: '2024-04-27', start: '2024-01-01' };
+    params.situations = [situacoes[9].id, situacoes[8].id];
+
+    params.idContato = null;
+    params.idLoja = null;
+    params.numero = null;
+
+    this.getPedidos(params);
     this.getModulo();
   }
 
-  printAll(){
+  printAll() {
     //Abre os campos
     this.toggleAllRows();
     // Gera os códigos de barra | Aguarda a promisse ser resolvida para imprimir o código de barras
@@ -157,12 +162,18 @@ export class SeparacaoComponent implements OnInit {
       //Imprime os códigos de barra
       //Pega os elementos gerados nos códigos de barra
       const printContents = this.print.toArray();
-      const content = printContents.map((el) => el.nativeElement.innerHTML).join(' \n');
+      const content = printContents
+        .map((el) => el.nativeElement.innerHTML)
+        .join(' \n');
 
       console.log(content);
 
       // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
-      const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+      const windowPrint = window.open(
+        '',
+        '_blank',
+        'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+      );
       windowPrint!.document.write(`<html>
       <header>
         <title>Impressão de Etiquetas</title>
@@ -233,14 +244,17 @@ export class SeparacaoComponent implements OnInit {
         windowPrint!.print();
         windowPrint!.close();
       }, 250);
-
-      })
+    });
   }
 
   printElementId(element: HTMLElement) {
     const printContents = element.innerHTML; // document.querySelector('#print')?.innerHTML;
-      // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
-    const windowPrint = window.open('', '_blank', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
+    const windowPrint = window.open(
+      '',
+      '_blank',
+      'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+    );
     windowPrint!.document.write(`<html>
     <header>
       <title>Impressão de Etiquetas</title>
@@ -350,78 +364,72 @@ export class SeparacaoComponent implements OnInit {
     return '';
   }
 
-  putSituation(orderId:number,situationId:number){
+  putSituation(orderId: number, situationId: number) {
     let situacao = situacoes.find((i) => i.id == situationId);
-    this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
-      next:(result:any) =>{
+    this.pedidoServ.putOrderSit(orderId, situationId).subscribe({
+      next: (result: any) => {
         this.notify.notify({
           message: `Situação alterada: ${situacao?.nome}`,
           type: NotificationType.SUCSESS,
-        })
+        });
       },
-      error: (err:any)=>{
+      error: (err: any) => {
         this.notify.notify({
           message: 'Erro ao mudar o status do pedido !',
           type: NotificationType.ERROR,
-        })
-      }
-    })
-  }
-  getPedidos(pagination: any, data: any,situacoes:number[]) {
-    this.pedidoServ.getPedidos(pagination, data,situacoes).subscribe({
-      next: (res: any) => {
-
-        let itens = [];
-        itens.push(...res.data);
-        this.dados = itens; //Dados do gráfico
-        this.dadosFilter = itens; //Dados da tabela
-
-
-      },
-      error: (err: any) => {
-
-        this.notify.notify({
-        message: 'Deu certo pow',
-        type: NotificationType.ERROR,
-      })
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
-      },
-      complete: () => {
-
-
+        });
       },
     });
   }
 
- getDetalhePedido(item?: any) {
+  getPedidos(params: any) {
+    this.pedidoServ.getPedidos(params).subscribe({
+      next: (res: any) => {
+        let itens = [];
+        itens.push(...res.data);
+        this.dados = itens; //Dados do gráfico
+        this.dadosFilter = itens; //Dados da tabela
+      },
+      error: (err: any) => {
+        this.notify.notify({
+          message: 'Deu certo pow',
+          type: NotificationType.ERROR,
+        });
+        this.tokenService.limparLocalStorage();
+        this.router.navigate(['/']);
+      },
+      complete: () => {},
+    });
+  }
+
+  getDetalhePedido(item?: any) {
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
 
-
         this.visualizarDialog = true;
         this.generateBarcode().then();
         //Id do pedido | Id da situação - Em separação
         if (item.situacao.id != situacoes[9].id) {
-          this.putSituation(item.id,situacoes[9].id)
-          let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
+          this.putSituation(item.id, situacoes[9].id);
+          let dateIni,
+            dateFin = this.convertDate(this.form.controls['data'].value);
           this.dados = [];
           this.dadosFilter = [];
-          this.getPedidos(0, {dataIni: dateIni, dataFin: dateFin},[situacoes[9].id,situacoes[8].id]);
+          // this.getPedidos({
+          //   pagination: 0,
+          //   period: { dataIni: dateIni, dataFin: dateFin },
+          //   situations: [situacoes[9].id, situacoes[8].id],
+          // });
         }
-
       },
       error: (err: any) => {
         this.visualizarDialog = false;
         console.log(err);
       },
-      complete: () => {
-
-      },
+      complete: () => {},
     });
-
   }
 
   createChart() {
@@ -495,78 +503,93 @@ export class SeparacaoComponent implements OnInit {
     return { labels, values, colors, darkerColors };
   }
 
-  pageChange(event: any) {
+  pageChange(event: any) {}
 
-  }
-
-  //prettier-ignore
   buscarItemLista() {
-    this.dadosFilter = this.dados
-    if (this.form.controls['numCliente'].value) {
-      this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-        return x.contato.nome
-                        .toUpperCase()
-                        .includes(
-                          String(
-                            this.form.controls['numCliente'].value
-                          )
-                        .toUpperCase());
-      });
-    }
-
-    if (this.form.controls['numPedido'].value) {
-      this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-        return x.id
-                .toString()
-                .includes(
-                  this.form.controls['numPedido'].value
-                );
-      });
-    }
-
-    if (this.form.controls['numPedidoLojaVirtual'].value) {
-      this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-        return x.loja.id
-                     .toString()
-                     .includes(
-                       this.form.controls['numPedidoLojaVirtual'].value
-                     );
-      });
-    }
-
-    if (this.form.controls['numNotaFiscal'].value) {
-      this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-        return x.numero
-                .toString()
-                .includes(
-                  this.form.controls['numNotaFiscal'].value
-                );
-      });
-    }
-
     // this.dadosFilter = this.dados
-    // .map((numCliente: any) => {})
-    // .map((numPedido: any) => {})
-    // .map((numPedidoLojaVirtual: any) => {})
-    // .map((numNotaFiscal: any) => {})
+    // if (this.form.controls['numCliente'].value) {
+    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
+    //     return x.contato.nome
+    //                     .toUpperCase()
+    //                     .includes(
+    //                       String(
+    //                         this.form.controls['numCliente'].value
+    //                       )
+    //                     .toUpperCase());
+    //   });
+    // }
 
-    // this.form.controls['numCliente'].value;
-    // this.form.controls['numPedido'].value;
-    // this.form.controls['numPedidoLojaVirtual'].value;
-    // this.form.controls['numNotaFiscal'].value;
+    // if (this.form.controls['numPedido'].value) {
+    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
+    //     return x.id
+    //             .toString()
+    //             .includes(
+    //               this.form.controls['numPedido'].value
+    //             );
+    //   });
+    // }
 
-    if(this.form.controls['data'].value){
-      let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
-    }
+    // if (this.form.controls['numPedidoLojaVirtual'].value) {
+    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
+    //     return x.loja.id
+    //                  .toString()
+    //                  .includes(
+    //                    this.form.controls['numPedidoLojaVirtual'].value
+    //                  );
+    //   });
+    // }
 
+    // if (this.form.controls['numNotaFiscal'].value) {
+    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
+    //     return x.numero
+    //             .toString()
+    //             .includes(
+    //               this.form.controls['numNotaFiscal'].value
+    //             );
+    //   });
+    // }
 
+    // // this.dadosFilter = this.dados
+    // // .map((numCliente: any) => {})
+    // // .map((numPedido: any) => {})
+    // // .map((numPedidoLojaVirtual: any) => {})
+    // // .map((numNotaFiscal: any) => {})
 
+    // // this.form.controls['numCliente'].value;
+    // // this.form.controls['numPedido'].value;
+    // // this.form.controls['numPedidoLojaVirtual'].value;
+    // // this.form.controls['numNotaFiscal'].value;
+
+    // if(this.form.controls['data'].value){
+    //   let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
+    // }
+
+    let params = new BuscaParams();
+
+    params.idContato = this.form.controls['numCliente'].value;
+    params.numero = this.form.controls['numPedido'].value;
+    params.idLoja = this.form.controls['numPedidoLojaVirtual'].value;
+    params.period = this.convertDate(this.form.controls['data'].value);
+
+    params.pagination = { page: 1, limit: 100 };
+    params.situations = [situacoes[9].id, situacoes[8].id];
+
+    this.pedidoServ.getPedidos(params).subscribe({
+      next: (res) => {
+        debugger;
+        console.log(res);
+      },
+      error: (e) => {
+        debugger;
+        console.log(e);
+      },
+    });
   }
 
   convertDate(dateRange: Date[]) {
-    let dateIni = new Date(dateRange[0]).toISOString().split('T')[0];
-    let dateFin = new Date(dateRange[1]).toISOString().split('T')[0];
-    return {dateIni, dateFin};
+    let start = new Date(dateRange[0]).toISOString().split('T')[0];
+    let end = new Date(dateRange[1]).toISOString().split('T')[0];
+    return { start, end };
   }
 
   limpar() {
@@ -578,10 +601,10 @@ export class SeparacaoComponent implements OnInit {
     this.expandedRows[ped.name] = !this.expandedRows[ped.name];
   }
 
- async toggleAllRows() {
-    this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
+  async toggleAllRows() {
+    this.pedido.itens.forEach(
+      (item: any) => (this.expandedRows[item.name] = true)
+    );
     await this.generateBarcode().then();
   }
-
-
 }
