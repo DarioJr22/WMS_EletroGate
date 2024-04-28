@@ -71,11 +71,16 @@ export class PedidosService {
 
   getPedidos(
     pagination?:{page:number, limit:number},
-    period?:{start:string, end:string}
+    period?:{start:string, end:string},
+    situacoes?:number[]
   ) {
     const token: any = this.tokenService.getToken();
 
-    const urlToken = `/Api/v3/pedidos/vendas?pagina=${pagination?.page}&limite=${pagination?.limit}&dataInicial=${period?.start}&dataFinal=${period?.end}`;
+    const urlToken = `/Api/v3/pedidos/vendas?pagina=${pagination?.page}
+    &limite=${pagination?.limit}
+    &dataInicial=${period?.start}
+    &dataFinal=${period?.end}
+    &idsSituacoes=${situacoes}`;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });

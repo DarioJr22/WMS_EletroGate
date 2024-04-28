@@ -214,12 +214,14 @@
     </p-table>
     <div class="flex gap-3 justify-content-center p-3">
       <p-button
+        (click)="getEtiquete([pedido.id])"
         severity="success"
         label="Imprimir etiquetas de transporte"
       ></p-button>
       <p-button
+      (click)="putSituation(pedido.id,situacoes[1].id)"
         severity="success"
-        label="Liberar para conferência"
+        label="Liberar para expedição (Atendido)"
         [outlined]="true"
       ></p-button>
     </div>

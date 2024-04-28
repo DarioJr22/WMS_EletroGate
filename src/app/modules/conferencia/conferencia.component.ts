@@ -1,9 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { situacoes } from 'src/app/services/itens';
 import { PedidosService } from 'src/app/services/pedidos.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
+import { LogisticasService } from '../../services/logisitica.service';
+import { NotificationType } from 'src/app/services/notification';
+import { NotificationService } from 'src/app/shared/notification/notification.service';
 
 @Component({
   selector: 'app-conferencia',
@@ -16,7 +20,7 @@ export class ConferenciaComponent implements OnInit {
   data: any;
   options: any;
   pedido: any;
-
+  situacoes = situacoes;
   visualizarDialog = false;
   teste: any = [];
 
@@ -25,7 +29,9 @@ export class ConferenciaComponent implements OnInit {
     private userService: UserService,
     private tokenService: TokenService,
     private router: Router,
-    private pedidoServ: PedidosService
+    private pedidoServ: PedidosService,
+    private logisticasService: LogisticasService,
+    private notify:NotificationService
   ) {
     this.createChart();
 
@@ -38,11 +44,15 @@ export class ConferenciaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getPedidos();
+this.getPedidos()
   }
 
   getPedidos() {
-    this.pedidoServ.getPedidos().subscribe({
+    this.pedidoServ.getPedidos(
+      { page: 1, limit: 100 },
+      { start: '2024-01-01', end: '2024-04-27' },
+      [223275]
+    ).subscribe({
       next: (res: any) => {
         console.log('Pedidos', res);
         this.dados = res.data;
@@ -50,6 +60,22 @@ export class ConferenciaComponent implements OnInit {
       error: (err: any) => {
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
+      },
+      complete: () => {},
+    });
+  }
+
+  getEtiquete(pedido:number[]){
+    this.logisticasService.getEtiquetaDeTransporte(pedido).subscribe({
+      next: (res: any) => {
+        console.log('Etiquetas', res);
+        let result = [];
+        result = res.data;
+        result.map((et:{id:number,link:string,observacao:string}) =>  window.open(et.link)) // window.open(et.link,'_blank'))
+      },
+      error: (err: any) => {
+        console.log(err);
+
       },
       complete: () => {},
     });
@@ -105,5 +131,23 @@ export class ConferenciaComponent implements OnInit {
         },
       },
     };
+  }
+
+  putSituation(orderId:number,situationId:number){
+    let situacao = situacoes.find((i) => i.id == situationId);
+    this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
+      next:(result:any) =>{
+        this.notify.notify({
+          message: `Situação alterada: ${situacao?.nome}`,
+          type: NotificationType.SUCSESS,
+        })
+      },
+      error: (err:any)=>{
+        this.notify.notify({
+          message: 'Erro ao mudar o status do pedido !',
+          type: NotificationType.ERROR,
+        })
+      }
+    })
   }
 }

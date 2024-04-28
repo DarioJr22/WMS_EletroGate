@@ -278,6 +278,7 @@
     <div class="flex gap-3 justify-content-center p-3">
       <p-button severity="success" (click)="printAll()" label="Imprimir todas as etiquetas"></p-button>
       <p-button
+        (click)="putSituation(pedido.id,situacoes[10].id)"
         severity="success"
         label="Liberar para conferência"
         [outlined]="true"

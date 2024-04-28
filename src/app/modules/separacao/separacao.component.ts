@@ -9,6 +9,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as JsBarcode from 'jsbarcode';
 import { interval } from 'rxjs';
+import { situacoes } from 'src/app/services/itens';
 import { LogisticasService } from 'src/app/services/logisitica.service';
 import { NotificationType } from 'src/app/services/notification';
 import { PedidosService } from 'src/app/services/pedidos.service';
@@ -50,27 +51,27 @@ interface Objeto {
   styleUrls: ['./separacao.component.scss'],
 })
 export class SeparacaoComponent implements OnInit {
+
+  //Entidades
   dadosFilter: Objeto[] = [];
   dados: Objeto[] = [];
-  expandedRows: { [key: string]: boolean } = {};
-  isLoading:boolean = false
   form: FormGroup;
   data: any;
   options: any;
   pedido: any;
   situacoes: any[] = [];
+  //Elementos de tela
+  expandedRows: { [key: string]: boolean } = {};
+
+  //
+  isLoading:boolean = false
+
+
   visualizarDialog = false;
-  teste: any = [];
   first = 0;
   rows = 10;
   hoje = new Date();
   rangeDates: any;
-  query = {
-    limit: 100,
-    page: 1,
-    start: '',
-    end: '',
-  };
 
   @ViewChildren('barcodeElement') barcodeElements!: QueryList<
     ElementRef<HTMLImageElement>
@@ -142,7 +143,8 @@ export class SeparacaoComponent implements OnInit {
 
     this.getPedidos(
       { page: 1, limit: 100 },
-      { start: '2024-01-01', end: '2024-04-27' }
+      { start: '2024-01-01', end: '2024-04-27' },
+      [situacoes[9].id,situacoes[8].id]
     );
     this.getModulo();
   }
@@ -323,8 +325,8 @@ export class SeparacaoComponent implements OnInit {
     });
   }
 
-  getSituacoes(id: number) {
-    this.pedidoServ.getSituations(id).subscribe({
+  getSituacoes(idModule: number) {
+    this.pedidoServ.getSituations(idModule).subscribe({
       next: (res: any) => {
         this.situacoes = res.data;
         console.log(this.situacoes);
@@ -349,42 +351,45 @@ export class SeparacaoComponent implements OnInit {
   }
 
   putSituation(orderId:number,situationId:number){
+    let situacao = situacoes.find((i) => i.id == situationId);
     this.pedidoServ.putOrderSit(orderId,situationId).subscribe({
       next:(result:any) =>{
-        console.log(result);
+        this.notify.notify({
+          message: `Situação alterada: ${situacao?.nome}`,
+          type: NotificationType.SUCSESS,
+        })
       },
       error: (err:any)=>{
-        console.log(err);
+        this.notify.notify({
+          message: 'Erro ao mudar o status do pedido !',
+          type: NotificationType.ERROR,
+        })
       }
     })
   }
-  getPedidos(pagination: any, data: any) {
-    this.pedidoServ.getPedidos(pagination, data).subscribe({
+  getPedidos(pagination: any, data: any,situacoes:number[]) {
+    this.pedidoServ.getPedidos(pagination, data,situacoes).subscribe({
       next: (res: any) => {
-        if (res.data.length == 100) {
-          let itens = [];
-          itens.push(...res.data);
-          this.dados = itens;
-          this.dadosFilter = itens;
 
-        } else {
-          this.dados.push(...res.data);
-        }
-
+        let itens = [];
+        itens.push(...res.data);
+        this.dados = itens; //Dados do gráfico
+        this.dadosFilter = itens; //Dados da tabela
 
 
       },
       error: (err: any) => {
+
+        this.notify.notify({
+        message: 'Deu certo pow',
+        type: NotificationType.ERROR,
+      })
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
       complete: () => {
 
-        this.notify.notify({
-          message: 'Deu certo pow',
-          type: NotificationType.ERROR,
 
-        })
       },
     });
   }
@@ -399,7 +404,14 @@ export class SeparacaoComponent implements OnInit {
         this.visualizarDialog = true;
         this.generateBarcode().then();
         //Id do pedido | Id da situação - Em separação
-        this.putSituation(item.id,223260)
+        if (item.situacao.id != situacoes[9].id) {
+          this.putSituation(item.id,situacoes[9].id)
+          let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
+          this.dados = [];
+          this.dadosFilter = [];
+          this.getPedidos(0, {dataIni: dateIni, dataFin: dateFin},[situacoes[9].id,situacoes[8].id]);
+        }
+
       },
       error: (err: any) => {
         this.visualizarDialog = false;
@@ -484,7 +496,7 @@ export class SeparacaoComponent implements OnInit {
   }
 
   pageChange(event: any) {
-    debugger;
+
   }
 
   //prettier-ignore
@@ -568,6 +580,8 @@ export class SeparacaoComponent implements OnInit {
 
  async toggleAllRows() {
     this.pedido.itens.forEach((item:any) => this.expandedRows[item.name] = true);
-    await this.generateBarcode();
+    await this.generateBarcode().then();
   }
+
+
 }
