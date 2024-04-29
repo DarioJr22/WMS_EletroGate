@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/Api/:path*",
+      "destination": "https://www.bling.com.br/Api/:path*"
+    }
+  ]
+}

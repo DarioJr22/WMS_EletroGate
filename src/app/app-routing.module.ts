@@ -22,6 +22,12 @@ const routes: Routes = [
     path: 'conferencia',
     component: ConferenciaComponent,
   },
+  {
+
+      path: '**',
+      component: OpcoesComponent
+
+  }
 ];
 
 @NgModule({
