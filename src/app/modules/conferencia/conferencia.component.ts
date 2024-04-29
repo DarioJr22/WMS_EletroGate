@@ -347,7 +347,10 @@ export class ConferenciaComponent implements OnInit {
   getSitucaoStl(id: number) {
     let situacao = this.situacoes.find((i) => i.id == id);
     if (situacao) {
-      return [situacao.nome, situacao.cor];
+      if (situacao.id == 223275) {
+        return [situacao.nome, situacao.cor, '#000'];
+      }
+      return [situacao.nome, situacao.cor, '#fff'];
     }
     return '';
   }

@@ -1,7 +1,10 @@
 <div class="padding-default">
   <div class="flex justify-content-between m-3 p-3">
     <span class="flex align-items-center gap-4">
-      <i class="pi pi-list-check" style="transform: scale(3); color: #035110"></i>
+      <i
+        class="pi pi-list-check"
+        style="transform: scale(3); color: #035110"
+      ></i>
       <h1>Conferência</h1>
     </span>
 
@@ -26,36 +29,43 @@
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Cliente</label>
                 <p-inputNumber
-                class="w-100"
-                formControlName="numCliente"
-                mode="decimal"
-                inputId="withoutgrouping"
-                [useGrouping]="false">
-              </p-inputNumber>
+                  class="w-100"
+                  formControlName="numCliente"
+                  mode="decimal"
+                  inputId="withoutgrouping"
+                  [useGrouping]="false"
+                >
+                </p-inputNumber>
               </div>
             </div>
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Pedido</label>
                 <p-inputNumber
-                class="w-100"
-                formControlName="numPedido"
-                mode="decimal"
-                inputId="withoutgrouping"
-                [useGrouping]="false">
-              </p-inputNumber>
+                  class="w-100"
+                  formControlName="numPedido"
+                  mode="decimal"
+                  inputId="withoutgrouping"
+                  [useGrouping]="false"
+                >
+                </p-inputNumber>
               </div>
             </div>
             <div class="col-6">
               <div class="flex flex-column gap-2">
-                <label style="overflow: hidden; white-space: nowrap;" for="username">Nº do Pedido - Loja Virtual</label>
+                <label
+                  style="overflow: hidden; white-space: nowrap"
+                  for="username"
+                  >Nº do Pedido - Loja Virtual</label
+                >
                 <p-inputNumber
-                class="w-100"
-                formControlName="numPedidoLojaVirtual"
-                mode="decimal"
-                inputId="withoutgrouping"
-                [useGrouping]="false">
-              </p-inputNumber>
+                  class="w-100"
+                  formControlName="numPedidoLojaVirtual"
+                  mode="decimal"
+                  inputId="withoutgrouping"
+                  [useGrouping]="false"
+                >
+                </p-inputNumber>
               </div>
             </div>
             <!--  <div class="col-6">
@@ -193,7 +203,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Modalidade de Envio </span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ "Não sei" }}</strong>
+            <strong>{{ modalidadeEnvio(pedido.transporte.volumes) }}</strong>
           </p>
         </div>
       </div>
@@ -207,44 +217,65 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th style="width: 5rem"></th>
+          <th style="width: 5rem">
+            <!-- <button (click)="toggleAllRows()" pButton pRipple class="p-button-text">
+                      Toggle All
+                  </button> -->
+          </th>
           <th>Descrição</th>
           <th>Código</th>
-          <th>
-            <div class="flex justify-content-center">Quantidade</div>
-          </th>
+          <th>Quantidade</th>
           <th>Valor</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-ped let-expanded="expanded">
+      <ng-template pTemplate="body" let-ped>
         <tr>
           <td>
             <button
               type="button"
               pButton
               pRipple
-              [pRowToggler]="ped"
+              (click)="toggleRow(ped); generateBarcode()"
               class="p-button-text p-button-rounded p-button-plain"
-              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              [icon]="
+                expandedRows[ped.name]
+                  ? 'pi pi-chevron-down'
+                  : 'pi pi-chevron-right'
+              "
             ></button>
           </td>
           <td>{{ ped.descricao }}</td>
           <td>{{ ped.codigo }}</td>
-          <td>
-            <div class="flex justify-content-center">
-              {{ ped.quantidade + " " + (ped.unidade | titlecase) }}
-            </div>
-          </td>
+          <td>{{ ped.quantidade }}</td>
           <td>{{ ped.valor | currency : "BRL" }}</td>
         </tr>
-      </ng-template>
-      <ng-template pTemplate="rowexpansion" let-detail>
-        <tr>
+        <tr *ngIf="expandedRows[ped.name]" class="expansion-detail">
           <td colspan="7">
             <div class="p-3 border-round-sm surface-100 card grid">
-              <div class="col-10"><h1>código de barras</h1></div>
+              <div #elementPrint [id]="'print'" class="col-10">
+                <span class="spacer wrapper-40x25">
+                  <div
+                    class="titleSKU"
+                    style="color: #000; margin-top: 5px"
+                    #name
+                  ></div>
+                  <div
+                    class="barcode-holder"
+                    style="color: #000; margin-top: 15px"
+                  >
+                    <img alt="codigoDeBarra" #barcodeElement />
+                  </div>
+                  <div class="footer">
+                    <span style="color: #000; font-size: 9px" #sku></span>
+                    <span style="color: #000; font-size: 9px" class="date">{{
+                      hoje | date : "dd/MM/yyyy"
+                    }}</span>
+                  </div>
+                </span>
+              </div>
               <div class="col-2 flex justify-content-center">
                 <p-button
+                  (click)="printElementId(elementPrint)"
                   severity="success"
                   label="Imprimir etiqueta"
                 ></p-button>

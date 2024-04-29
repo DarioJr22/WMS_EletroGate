@@ -70,6 +70,9 @@ export class SeparacaoComponent implements OnInit {
   rows = 10;
   hoje = new Date();
   rangeDates: any;
+
+  dataTempTable: any[] = [];
+  dataTempChart: any[] = [];
   @ViewChildren('barcodeElement') barcodeElements!: QueryList<
     ElementRef<HTMLImageElement>
   >;
@@ -357,6 +360,9 @@ export class SeparacaoComponent implements OnInit {
   getSitucaoStl(id: number) {
     let situacao = this.situacoes.find((i) => i.id == id);
     if (situacao) {
+      if (situacao.id == 223275) {
+        return [situacao.nome, situacao.cor, '#000'];
+      }
       return [situacao.nome, situacao.cor];
     }
     return '';
@@ -390,8 +396,6 @@ export class SeparacaoComponent implements OnInit {
     });
   }
 
-  dataTempTable: any[] = [];
-  dataTempChart: any[] = [];
   getPedidos(params: BuscaParams, dataSource?: 'table' | 'chart') {
     this.isLoading = true;
     this.pedidoServ.getPedidos(params).subscribe({
@@ -421,8 +425,8 @@ export class SeparacaoComponent implements OnInit {
           message: this.pedidoServ.handleError(err),
           type: NotificationType.ERROR,
         });
-        /*         this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']); */
+        this.tokenService.limparLocalStorage();
+        this.router.navigate(['/']);
         this.isLoading = false;
       },
       complete: () => {
