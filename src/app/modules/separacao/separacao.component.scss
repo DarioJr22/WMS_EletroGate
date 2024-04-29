@@ -3,4 +3,33 @@
   .p-calendar.p-calendar-w-btn{
     width: 100%;
     }
+
+    .p-inputnumber{
+      width: 100%;
+    }
+
+    .p-inputtext:enabled:hover{
+      border-color: #378204;
+    }
+
+
+    .p-inputtext:enabled:focus {
+      outline: 0 none;
+      outline-offset: 0;
+      box-shadow: 0 0 0 0.2rem #bffec2;
+      border-color: #378204;
+  }
+
+    .p-button:not(:disabled):hover {
+      border-color: #286002;
+      border-color: #006006;
+  }
+
+  .p-button:focus {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #9dc1fb, 0 1px 2px 0 rgb(0, 0, 0);
+  }
+
+
+
+
 }

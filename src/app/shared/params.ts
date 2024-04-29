@@ -1,5 +1,5 @@
 export class BuscaParams {
-  pagination?: { page: number; limit: number };
+  pagination: { page: number; limit: number } = { page: 1, limit: 100 };
   period?: { start: string; end: string };
   situations?: number[];
 

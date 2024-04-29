@@ -73,15 +73,8 @@ export class PedidosService {
   getPedidos(params: BuscaParams) {
     const token: any = this.tokenService.getToken();
 
-    const urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}
-      &limite=${params?.pagination?.limit}
-      &idContato=${params.idContato}
-      &idLoja=${params.idLoja}
-      &numero=${params.numero}
-      &dataInicial=${params?.period?.start}
-      &dataFinal=${params?.period?.end}
-      &idsSituacoes=${params?.situations}`;
-
+    let urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}&limite=${params?.pagination?.limit}&idContato=${params.idContato}&numero=${params.numero}&dataInicial=${params?.period?.start}&dataFinal=${params?.period?.end}&idsSituacoes=${params?.situations}`;
+    params.idLoja != null ? (urlToken += `&numerosLojas=${params.idLoja}`) : null;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
