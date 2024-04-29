@@ -1,4 +1,9 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
@@ -74,7 +79,9 @@ export class PedidosService {
     const token: any = this.tokenService.getToken();
 
     let urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}&limite=${params?.pagination?.limit}&idContato=${params.idContato}&numero=${params.numero}&dataInicial=${params?.period?.start}&dataFinal=${params?.period?.end}&idsSituacoes=${params?.situations}`;
-    params.idLoja != null ? (urlToken += `&numerosLojas=${params.idLoja}`) : null;
+    params.idLoja != null
+      ? (urlToken += `&numerosLojas=${params.idLoja}`)
+      : null;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
@@ -127,5 +134,15 @@ export class PedidosService {
       },
       { headers: header }
     );
+  }
+
+  handleError(error: HttpErrorResponse) {
+    let titulo = error.error.error.description;
+    let fields = error.error.error.fields
+      ? error.error.error.fields.map((i: any) => `- ${i.msg} \n`)
+      : 'Sem campos';
+    return `${titulo} \n
+   Campo(s):
+   \n ${fields}`;
   }
 }
