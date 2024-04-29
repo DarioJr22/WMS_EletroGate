@@ -43,7 +43,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TreeTableModule } from 'primeng/treetable';
 import { SplitterModule } from 'primeng/splitter';
-import { StepperModule } from 'primeng/stepper';
 import { StyleClassModule } from 'primeng/styleclass';
 import { TableModule } from 'primeng/table';
 import { TabMenuModule } from 'primeng/tabmenu';
@@ -82,7 +81,6 @@ import { LoadingComponent } from './loading/loading.component';
     ConfirmDialogModule,
     TreeTableModule,
     ChartModule,
-    StepperModule,
     ConfirmPopupModule,
     DataViewModule,
     ColorPickerModule,
@@ -138,7 +136,6 @@ import { LoadingComponent } from './loading/loading.component';
     ConfirmPopupModule,
     FormsModule,
     ReactiveFormsModule,
-    StepperModule,
     DataViewModule,
     TreeTableModule,
     DialogModule,
