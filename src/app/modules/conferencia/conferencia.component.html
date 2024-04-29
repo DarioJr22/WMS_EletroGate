@@ -97,7 +97,19 @@
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>
           <td>{{ item.contato.nome }}</td>
-          <td>{{ item.situacao.id }}</td>
+          <td>
+            <span
+              class="situacoes"
+              [style]="
+                'background-color:' +
+                getSitucaoStl(item.situacao?.id)[1] +
+                '; color: ' +
+                getSitucaoStl(item.situacao?.id)[2]
+              "
+            >
+              {{ getSitucaoStl(item.situacao?.id)[0] }}
+            </span>
+          </td>
           <td>
             <p-button
               icon="pi pi-eye"
@@ -219,7 +231,7 @@
         label="Imprimir etiquetas de transporte"
       ></p-button>
       <p-button
-      (click)="putSituation(pedido.id,situacoes[1].id)"
+        (click)="putSituation(pedido.id, situacoes[1].id)"
         severity="success"
         label="Liberar para expedição (Atendido)"
         [outlined]="true"
