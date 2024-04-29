@@ -139,10 +139,20 @@ export class PedidosService {
   handleError(error: HttpErrorResponse) {
     let titulo = error.error.error.description;
     let fields = error.error.error.fields
-      ? error.error.error.fields.map((i: any) => `- ${i.msg} \n`)
-      : 'Sem campos';
-    return `${titulo} \n
-   Campo(s):
-   \n ${fields}`;
+      ? error.error.error.fields.map((i: any) => `- ${i.msg} <br>`)
+      : error.error.error.message ? error.error.error.message :
+      'Sem campos';
+
+
+    if(error.error.error.type == 'invalid_token'){
+      this.tokenService.limparLocalStorage();
+      this.router.navigate(['/']);
+    }
+
+    return `${titulo}
+    <br>
+      Campo(s):
+    <br>
+    ${fields}`;
   }
 }

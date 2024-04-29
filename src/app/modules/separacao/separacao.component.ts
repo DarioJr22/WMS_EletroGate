@@ -389,7 +389,7 @@ export class SeparacaoComponent implements OnInit {
       },
       error: (err: any) => {
         this.notify.notify({
-          message: 'Erro ao mudar o status do pedido !',
+          message: this.pedidoServ.handleError(err),
           type: NotificationType.ERROR,
         });
       },
@@ -425,8 +425,6 @@ export class SeparacaoComponent implements OnInit {
           message: this.pedidoServ.handleError(err),
           type: NotificationType.ERROR,
         });
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
         this.isLoading = false;
       },
       complete: () => {
@@ -462,7 +460,10 @@ export class SeparacaoComponent implements OnInit {
       },
       error: (err: any) => {
         this.visualizarDialog = false;
-        console.log(err);
+        this.notify.notify({
+          message: this.pedidoServ.handleError(err),
+          type: NotificationType.ERROR,
+        });
       },
       complete: () => {},
     });
@@ -573,8 +574,10 @@ export class SeparacaoComponent implements OnInit {
   }
 
   limpar() {
-    this.dadosFilter = this.dados;
-    this.form.reset();
+    this.form.controls['numCliente'].setValue(null);
+    this.form.controls['numPedido'].setValue(null);
+    this.form.controls['numPedidoLojaVirtual'].setValue(null);
+
   }
 
   toggleRow(ped: any) {

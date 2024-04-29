@@ -298,13 +298,6 @@ export class ConferenciaComponent implements OnInit {
     return vol.map((i: any) => `${i.id} - ${i.servico}`);
   }
 
-  /**
-   * A function that retrieves the module using pedidoServ,
-   * subscribes to the response to handle the next and error cases,
-   * and triggers the getSituacoes function based on the module ID obtained.
-   *
-   * @return {void} No return value
-   */
   getModulo() {
     this.pedidoServ.getModule().subscribe({
       next: (res: any) => {
@@ -368,8 +361,7 @@ export class ConferenciaComponent implements OnInit {
           //Reloada a tabela
           this.dadosFilter = [];
           let params = this.fillParamsFilter([
-            situacoes[9].id,
-            situacoes[8].id,
+            situacoes[10].id
           ]);
           this.getPedidos(params, 'table');
         }
@@ -411,7 +403,7 @@ export class ConferenciaComponent implements OnInit {
       },
       error: (err: any) => {
         this.notify.notify({
-          message: this.pedidoServ.handleError(err),
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         });
         /*         this.tokenService.limparLocalStorage();
@@ -426,7 +418,7 @@ export class ConferenciaComponent implements OnInit {
 
   reloadTable() {
     this.dadosFilter = [];
-    let params = this.fillParamsFilter([situacoes[9].id, situacoes[8].id]);
+    let params = this.fillParamsFilter([situacoes[10].id]);
     this.getPedidos(params, 'table');
   }
 
@@ -443,11 +435,7 @@ export class ConferenciaComponent implements OnInit {
         this.pedido = res.data;
         this.visualizarDialog = true;
         this.generateBarcode().then();
-        //Id do pedido | Id da situação - Em separação
-        if (item.situacao.id != situacoes[9].id) {
-          this.putSituation(item.id, situacoes[9].id);
-          this.reloadTable();
-        }
+        this.reloadTable();
       },
       error: (err: any) => {
         this.visualizarDialog = false;
@@ -547,6 +535,8 @@ export class ConferenciaComponent implements OnInit {
       this.form.controls['numPedidoLojaVirtual'].value != null
         ? parseInt(this.form.controls['numPedidoLojaVirtual'].value)
         : null;
+        console.log(this.form.controls['data'].value);
+
     params.period = this.convertDate(this.form.controls['data'].value);
     params.pagination = { page: 1, limit: 100 };
     params.situations = situations;
@@ -554,8 +544,17 @@ export class ConferenciaComponent implements OnInit {
   }
 
   buscarItemLista() {
-    this.isLoading = true;
-    this.reloadTable();
+
+    if(this.form.valid){
+      this.isLoading = true;
+      this.reloadTable();
+    }else{
+      this.notify.notify({
+        message: 'Preencha data inicial e final !',
+        type: NotificationType.WARN,
+      })
+    }
+
   }
 
   convertDate(dateRange: Date[]) {
@@ -565,8 +564,10 @@ export class ConferenciaComponent implements OnInit {
   }
 
   limpar() {
-    this.dadosFilter = this.dados;
-    this.form.reset();
+    this.form.controls['numCliente'].setValue(null);
+    this.form.controls['numPedido'].setValue(null);
+    this.form.controls['numPedidoLojaVirtual'].setValue(null);
+
   }
 
   toggleRow(ped: any) {
@@ -599,6 +600,7 @@ export class ConferenciaComponent implements OnInit {
   }
 
   getEtiquete(pedido: number[]) {
+    this.isLoading = true;
     this.logisticasService.getEtiquetaDeTransporte(pedido).subscribe({
       next: (res: any) => {
         console.log('Etiquetas', res);
@@ -609,9 +611,16 @@ export class ConferenciaComponent implements OnInit {
         ); // window.open(et.link,'_blank'))
       },
       error: (err: any) => {
-        console.log(err);
+        this.isLoading = false;
+
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
       },
-      complete: () => {},
+      complete: () => {
+        this.isLoading = false;
+      },
     });
   }
 }

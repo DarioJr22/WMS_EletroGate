@@ -55,13 +55,15 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { NotificationComponent } from './notification/notification.component';
 import { CommonModule } from '@angular/common';
+import { LoadingComponent } from './loading/loading.component';
 // bootstrapApplication(AppComponent, {
 //     providers: [provideEnvironmentNgxMask()],
 // }).catch((err) => console.error(err));
 
 @NgModule({
   declarations: [
-    NotificationComponent
+    NotificationComponent,
+    LoadingComponent
   ],
   imports: [
     CommonModule,
@@ -174,12 +176,13 @@ import { CommonModule } from '@angular/common';
     ToolbarModule,
     TooltipModule,
     MegaMenuModule,
-    NotificationComponent
+    NotificationComponent,
+    LoadingComponent
   ],
   providers: [
     MessageService,
     ConfirmationService,
-    { provide: 'ttlDefault', useValue: 115000 }
+    { provide: 'ttlDefault', useValue: 8000 }
   ],
 })
 export class SharedModule {}

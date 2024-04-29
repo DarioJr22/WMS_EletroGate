@@ -17,7 +17,7 @@
   </div>
   <div class="card">
     <div class="grid align-items-center justify-content-center">
-      <div class="col-lg-4 col-md-12 col-md-12">
+      <div class="col-lg-4 col-md-12 col-md-12 ">
         <div class="card flex justify-content-center">
           <p-chart type="doughnut" [data]="data" [options]="options"></p-chart>
         </div>
@@ -102,7 +102,7 @@
             (click)="limpar()"
             pTooltip="Limpar"
             [outlined]="true"
-            severity="danger"
+            severity="success"
             icon="pi pi-eraser"
             tooltipPosition="bottom"
           ></p-button>
@@ -120,10 +120,18 @@
     </div>
   </div>
   <div class="card">
-    <p-table [value]="dados" [tableStyle]="{ 'min-width': '50rem' }">
+    <p-table
+    [value]="dadosFilter"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [paginator]="true"
+    [rows]="10"
+    (onPage)="pageChange($event)"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [rowsPerPageOptions]="[5,10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
           <th>Id</th>
+          <th>N° Pedido</th>
           <th>Data</th>
           <th>Loja</th>
           <th>Cliente</th>
@@ -134,35 +142,54 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>{{ item.id }}</td>
+          <td>{{ item.numero }}</td>
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>
           <td>{{ item.contato.nome }}</td>
           <td>
             <span
+            [innerHTML]="getSitucaoStl(item.situacao?.id)[0]"
+            style="
+                  max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            font-size: 13px;
+        "
               class="situacoes"
               [style]="
                 'background-color:' +
                 getSitucaoStl(item.situacao?.id)[1] +
                 '; color: ' +
                 getSitucaoStl(item.situacao?.id)[2]
+
+
               "
             >
-              {{ getSitucaoStl(item.situacao?.id)[0] }}
             </span>
           </td>
           <td>
             <p-button
-              icon="pi pi-eye"
-              [rounded]="true"
-              pTooltip="Visualizar"
-              tooltipPosition="bottom"
-              (click)="getDetalhePedido(item)"
-            ></p-button>
+            severity="success"
+            icon="pi pi-external-link"
+            [rounded]="true"
+            pTooltip="Conferir pedido"
+            tooltipPosition="bottom"
+            (click)="getDetalhePedido(item)"
+          ></p-button>
           </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">Nemhum pedido encontrado.</td>
         </tr>
       </ng-template>
     </p-table>
   </div>
+  <notification></notification>
+  <loading [loading]="isLoading"></loading>
 </div>
 <p-dialog
   header="Itens do Pedido"
@@ -187,7 +214,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Nº do Pedido</span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ pedido.id }}</strong>
+            <strong>{{ pedido.numero }}</strong>
           </p>
         </div>
       </div>
@@ -286,6 +313,11 @@
       </ng-template>
     </p-table>
     <div class="flex gap-3 justify-content-center p-3">
+      <p-button
+      severity="success"
+      (click)="printAll()"
+      label="Imprimir todas as etiquetas - Itens"
+    ></p-button>
       <p-button
         (click)="getEtiquete([pedido.id])"
         severity="success"

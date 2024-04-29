@@ -14,8 +14,8 @@
   </div>
 
   <div class="card">
-    <div class="grid align-items-center">
-      <div class="col-4">
+    <div class="grid align-items-center justify-content-center">
+      <div class="col-lg-4 col-md-12 col-md-12">
         <div class="card flex justify-content-center">
           <p-chart type="doughnut" [data]="data" [options]="options"></p-chart>
         </div>
@@ -100,7 +100,7 @@
             (click)="limpar()"
             pTooltip="Limpar"
             [outlined]="true"
-            severity="danger"
+            severity="success"
             icon="pi pi-eraser"
             tooltipPosition="bottom"
           ></p-button>
@@ -126,7 +126,7 @@
       [rows]="10"
       (onPage)="pageChange($event)"
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-      [rowsPerPageOptions]="[10, 25, 50]"
+      [rowsPerPageOptions]="[5,10, 25, 50]"
     >
       <ng-template pTemplate="header">
         <tr>
@@ -141,19 +141,30 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.numero }}</td>
-          <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
-          <td>{{ item.loja ? item.loja.id : "" }}</td>
-          <td>{{ item.contato?.nome }}</td>
-          <td>
+          <td style="white-space: nowrap;">{{ item.id }}</td>
+          <td style="white-space: nowrap;">{{ item.numero }}</td>
+          <td style="white-space: nowrap;">{{ item.data | date : "dd/MM/yyyy" }}</td>
+          <td style="white-space: nowrap;">{{ item.loja ? item.loja.id : "" }}</td>
+          <td style="white-space: nowrap;">{{ item.contato?.nome }}</td>
+          <td style="
+          width: 100%;
+          ">
             <span
+            [innerHTML]="getSitucaoStl(item.situacao?.id)[0]"
+            style="
+                  max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            font-size: 13px;
+        "
               class="situacoes"
               [style]="
                 'background-color:' + getSitucaoStl(item.situacao?.id)[1]
               "
             >
-              {{ getSitucaoStl(item.situacao?.id)[0] }}
+
             </span>
           </td>
           <td>
@@ -176,6 +187,7 @@
     </p-table>
   </div>
   <notification></notification>
+  <loading [loading]="isLoading"></loading>
 </div>
 <p-dialog
   header="Itens do Pedido"
@@ -202,7 +214,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Nº do Pedido</span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ pedido.id }}</strong>
+            <strong>{{ pedido.numero }}</strong>
           </p>
         </div>
       </div>
