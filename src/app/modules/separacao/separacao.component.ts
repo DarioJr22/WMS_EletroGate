@@ -17,23 +17,23 @@ import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
-interface Contato {
+export interface Contato {
   id: number;
   nome: string;
   tipoPessoa: string;
   numeroDocumento: string;
 }
 
-interface Situacao {
+export interface Situacao {
   id: number;
   valor: number;
 }
 
-interface Loja {
+export interface Loja {
   id: number;
 }
 
-interface Objeto {
+export interface Objeto {
   id: number;
   numero: number;
   numeroLoja: string;
@@ -59,11 +59,11 @@ export class SeparacaoComponent implements OnInit {
   data: any;
   options: any;
   pedido: any;
-  situacoes: any[] = [];
+  situacoes: any[] = situacoes;
   //Elementos de tela
   expandedRows: { [key: string]: boolean } = {};
 
-  //
+
   isLoading: boolean = false;
 
   visualizarDialog = false;
@@ -71,7 +71,6 @@ export class SeparacaoComponent implements OnInit {
   rows = 10;
   hoje = new Date();
   rangeDates: any;
-
   @ViewChildren('barcodeElement') barcodeElements!: QueryList<
     ElementRef<HTMLImageElement>
   >;
@@ -141,15 +140,11 @@ export class SeparacaoComponent implements OnInit {
   ngOnInit(): void {
     //Inicializa os parâmetros de busca
     this.getInitialDateRange();
-    let params = new BuscaParams();
-    params.pagination = { page: 1, limit: 100 };
-    params.period = this.convertDate(this.form.controls['data'].value);
-    params.situations = [situacoes[9].id, situacoes[8].id];
-    params.idContato = null;
-    params.idLoja = null;
-    params.numero = null;
-    this.getPedidos(params);
-    this.getModulo();
+    let paramsChat = this.fillParamsFilter([situacoes[9].id, situacoes[8].id, situacoes[7].id,situacoes[10].id])
+    let paramsTable = this.fillParamsFilter([situacoes[9].id, situacoes[8].id])
+    this.getPedidos(paramsTable,'table');
+    this.getPedidos(paramsChat,'chart');
+    this.createChart();
   }
 
   printAll() {
@@ -354,10 +349,10 @@ export class SeparacaoComponent implements OnInit {
   getSituacoes(idModule: number) {
     this.pedidoServ.getSituations(idModule).subscribe({
       next: (res: any) => {
-        this.situacoes = res.data;
+
         console.log(this.situacoes);
 
-        this.createChart();
+
       },
       error: (err: any) => {
         this.notify.notify({
@@ -365,8 +360,8 @@ export class SeparacaoComponent implements OnInit {
           type: NotificationType.ERROR
         })
 
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
+     /*    this.tokenService.limparLocalStorage();
+        this.router.navigate(['/']); */
       },
     });
   }
@@ -390,18 +385,10 @@ export class SeparacaoComponent implements OnInit {
         })
         if(situacao?.nome != '[Em separação]' ){
             this.visualizarDialog = false;
-            this.dados = []
+            //Reloada a tabela
             this.dadosFilter = []
-            let params = new BuscaParams();
-            params.pagination = { page: 1, limit: 100 };
-            params.period = this.convertDate(this.form.controls['data'].value);
-            params.situations = [situacoes[9].id, situacoes[8].id];
-            params.idContato = null;
-            params.idLoja = null;
-            params.numero = null;
-
-
-            this.getPedidos(params)
+            let params = this.fillParamsFilter([situacoes[9].id, situacoes[8].id])
+            this.getPedidos(params, 'table');
         }
       },
       error: (err: any) => {
@@ -414,37 +401,50 @@ export class SeparacaoComponent implements OnInit {
   }
 
 
-  /**
-   * Retrieves the list of pedidos based on the provided pagination, data, and situacoes.
-   *
-   * @param {any} pagination - The pagination options for the request.
-   * @param {any} data - The data options for the request.
-   * @param {number[]} situacoes - The list of situacoes to filter the pedidos.
-   */
-  getPedidos(params: any) {
+
+  dataTempTable:any[] = []
+  dataTempChart:any[] = []
+  getPedidos(params: BuscaParams, dataSource?:'table' | 'chart') {
     this.isLoading = true;
     this.pedidoServ.getPedidos(params).subscribe({
       next: (res: any) => {
         let itens = [];
         itens.push(...res.data);
-        this.dados = itens; //Dados do gráfico
-        this.dadosFilter = itens; //Dados da tabela
+        //Verifica em qual fonte de dado será depositada a query
+        dataSource == 'chart' ? this.dataTempChart.push(...itens) : this.dataTempTable.push(...itens);
+
+        //Se a query 100 itens é porque ela ainda não terminou todos os registros.
+        if(itens.length == 100 ){
+          params.pagination.page += 1;
+          this.getPedidos(params, dataSource);
+        } else if (itens.length < 100 && dataSource == 'table') {
+          this.dadosFilter = this.dataTempTable;
+          this.dataTempTable = [];
+        } else if (itens.length < 100 && dataSource == 'chart') {
+          this.dados = this.dataTempChart;
+          this.createChart();
+          this.dataTempChart = [];
+        }
       },
       error: (err: any) => {
-
           this.notify.notify({
           message: this.pedidoServ.handleError(err),
           type: NotificationType.ERROR,
         })
-        this.tokenService.limparLocalStorage();
-        this.router.navigate(['/']);
+/*         this.tokenService.limparLocalStorage();
+        this.router.navigate(['/']); */
         this.isLoading = false;
       },
       complete: () => {
         this.isLoading = false;
-
       },
     });
+  }
+
+  reloadTable(){
+    this.dadosFilter = []
+    let params = this.fillParamsFilter([situacoes[9].id, situacoes[8].id])
+    this.getPedidos(params, 'table');
   }
 
    /**
@@ -463,15 +463,7 @@ export class SeparacaoComponent implements OnInit {
         //Id do pedido | Id da situação - Em separação
         if (item.situacao.id != situacoes[9].id) {
           this.putSituation(item.id, situacoes[9].id);
-          let dateIni,
-            dateFin = this.convertDate(this.form.controls['data'].value);
-          this.dados = [];
-          this.dadosFilter = [];
-          // this.getPedidos({
-          //   pagination: 0,
-          //   period: { dataIni: dateIni, dataFin: dateFin },
-          //   situations: [situacoes[9].id, situacoes[8].id],
-          // });
+          this.reloadTable()
         }
       },
       error: (err: any) => {
@@ -558,84 +550,20 @@ export class SeparacaoComponent implements OnInit {
 
   pageChange(event: any) {}
 
-  buscarItemLista() {
-    // this.dadosFilter = this.dados
-    // if (this.form.controls['numCliente'].value) {
-    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-    //     return x.contato.nome
-    //                     .toUpperCase()
-    //                     .includes(
-    //                       String(
-    //                         this.form.controls['numCliente'].value
-    //                       )
-    //                     .toUpperCase());
-    //   });
-    // }
-
-    // if (this.form.controls['numPedido'].value) {
-    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-    //     return x.id
-    //             .toString()
-    //             .includes(
-    //               this.form.controls['numPedido'].value
-    //             );
-    //   });
-    // }
-
-    // if (this.form.controls['numPedidoLojaVirtual'].value) {
-    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-    //     return x.loja.id
-    //                  .toString()
-    //                  .includes(
-    //                    this.form.controls['numPedidoLojaVirtual'].value
-    //                  );
-    //   });
-    // }
-
-    // if (this.form.controls['numNotaFiscal'].value) {
-    //   this.dadosFilter = this.dadosFilter.filter((x: Objeto) => {
-    //     return x.numero
-    //             .toString()
-    //             .includes(
-    //               this.form.controls['numNotaFiscal'].value
-    //             );
-    //   });
-    // }
-
-    // // this.dadosFilter = this.dados
-    // // .map((numCliente: any) => {})
-    // // .map((numPedido: any) => {})
-    // // .map((numPedidoLojaVirtual: any) => {})
-    // // .map((numNotaFiscal: any) => {})
-
-    // // this.form.controls['numCliente'].value;
-    // // this.form.controls['numPedido'].value;
-    // // this.form.controls['numPedidoLojaVirtual'].value;
-    // // this.form.controls['numNotaFiscal'].value;
-
-    // if(this.form.controls['data'].value){
-    //   let dateIni, dateFin = this.convertDate(this.form.controls['data'].value)
-    // }
-
+  fillParamsFilter(situations:number[]){
     let params = new BuscaParams();
-
-    params.idContato = this.form.controls['numCliente'].value;
-    params.numero = this.form.controls['numPedido'].value;
-    params.idLoja = this.form.controls['numPedidoLojaVirtual'].value;
+    params.idContato = this.form.controls['numCliente'].value != null ? parseInt(this.form.controls['numCliente'].value) : null
+    params.numero = this.form.controls['numPedido'].value != null ? parseInt(this.form.controls['numPedido'].value) : null;
+    params.idLoja = this.form.controls['numPedidoLojaVirtual'].value != null ? parseInt(this.form.controls['numPedidoLojaVirtual'].value) : null
     params.period = this.convertDate(this.form.controls['data'].value);
     params.pagination = { page: 1, limit: 100 };
-    params.situations = [situacoes[9].id, situacoes[8].id];
+    params.situations = situations;
+    return params
+  }
 
-    this.pedidoServ.getPedidos(params).subscribe({
-      next: (res) => {
-        debugger;
-        console.log(res);
-      },
-      error: (e) => {
-        debugger;
-        console.log(e);
-      },
-    });
+  buscarItemLista() {
+    this.isLoading = true;
+    this.reloadTable()
   }
 
   convertDate(dateRange: Date[]) {
@@ -661,17 +589,8 @@ export class SeparacaoComponent implements OnInit {
   }
 
   onVisibleChange(ev:any){
-    this.dados = [];
-    this.dadosFilter = [];
     this.getInitialDateRange();
-    let params = new BuscaParams();
-    params.pagination = { page: 1, limit: 100 };
-    params.period = this.convertDate(this.form.controls['data'].value);
-    params.situations = [situacoes[9].id, situacoes[8].id];
-    params.idContato = null;
-    params.idLoja = null;
-    params.numero = null;
-    this.getPedidos(params);
+    this.reloadTable()
   }
 
   getDateRange(dias:number){

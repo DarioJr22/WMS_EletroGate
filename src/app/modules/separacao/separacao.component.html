@@ -26,34 +26,37 @@
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Cliente</label>
-                <input
-                  pInputText
-                  formControlName="numCliente"
-                  id="username"
-                  aria-describedby="username-help"
-                />
+                <p-inputNumber
+                class="w-100"
+                formControlName="numCliente"
+                mode="decimal"
+                inputId="withoutgrouping"
+                [useGrouping]="false">
+              </p-inputNumber>
               </div>
             </div>
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Pedido</label>
-                <input
-                  pInputText
-                  formControlName="numPedido"
-                  id="username"
-                  aria-describedby="username-help"
-                />
+                <p-inputNumber
+                class="w-100"
+                formControlName="numPedido"
+                mode="decimal"
+                inputId="withoutgrouping"
+                [useGrouping]="false">
+              </p-inputNumber>
               </div>
             </div>
             <div class="col-6">
               <div class="flex flex-column gap-2">
                 <label style="overflow: hidden; white-space: nowrap;" for="username">Nº do Pedido - Loja Virtual</label>
-                <input
-                  pInputText
-                  formControlName="numPedidoLojaVirtual"
-                  id="username"
-                  aria-describedby="username-help"
-                />
+                <p-inputNumber
+                class="w-100"
+                formControlName="numPedidoLojaVirtual"
+                mode="decimal"
+                inputId="withoutgrouping"
+                [useGrouping]="false">
+              </p-inputNumber>
               </div>
             </div>
             <!--  <div class="col-6">
@@ -72,6 +75,7 @@
               <div class="flex flex-column gap-2">
                 <label for="username">Período</label>
                 <p-calendar
+                  [required]="true"
                   class="w-100"
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
@@ -120,6 +124,7 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Id</th>
+          <th>N° Pedido</th>
           <th>Data</th>
           <th>Loja</th>
           <th>Cliente</th>
@@ -130,6 +135,7 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>{{ item.id }}</td>
+          <td>{{ item.numero}}</td>
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>
           <td>{{ item.contato?.nome }}</td>
@@ -198,7 +204,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Nº do Pedido - Loja Virtual</span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ pedido.loja ? pedido.loja.id : 0 }}</strong>
+            <strong>{{ pedido.numeroLoja ? pedido.numeroLoja : 0 }}</strong>
           </p>
         </div>
       </div>
