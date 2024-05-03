@@ -202,7 +202,7 @@
   <div class="card">
     <div class="grid">
       <div class="col-12">
-        <span class="text-400">Tempo de separação do pedido: </span>
+        <span class="text-400">Tempo de conferência do pedido: </span>
         <span style="font-size: 1rem;" class="text-400 font-bold">
           <cd-timer format="hms" ></cd-timer>
         </span>
@@ -295,19 +295,24 @@
                     style="color: #000; margin-top: 5px"
                     #name
                   ></div>
-                  <div class="footer">
-                    <span style="color: #000; font-size: 9px" #sku></span>
-                    <span style="color: #000; font-size: 9px" #qtde></span>
-                    <!-- <span style="color: #000; font-size: 9px" class="date">{{
-                      hoje | date : "dd/MM/yyyy"
-                    }}</span> -->
-                  </div>
-                  <div
-                    class="barcode-holder"
-                    style="color: #000;"
-                  >
-                    <img alt="codigoDeBarra" #barcodeElement />
-                  </div>
+
+                  <span id="barcodeContentWrapper">
+
+                    <div class="footer">
+                      <span style="color: #000; font-size: 9px" #sku></span>
+                      <span style="color: #000; font-size: 9px" #qtde></span>
+                      <!-- <span style="color: #000; font-size: 9px" class="date">{{
+                        hoje | date : "dd/MM/yyyy"
+                      }}</span> -->
+                    </div>
+                    <div
+                      class="barcode-holder"
+                      style="color: #000;"
+                    >
+                      <img alt="codigoDeBarra" #barcodeElement />
+                    </div>
+                  </span>
+
 
                 </span>
               </div>
