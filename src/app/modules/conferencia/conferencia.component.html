@@ -26,7 +26,7 @@
       <div class="col-8 col-md-12 col-md-12 justify-content-center w-100">
         <form [formGroup]="form">
           <div class="grid">
-            <div class="col-6">
+            <div class="xl:col-6 sm:col-12">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Cliente</label>
                 <p-inputNumber
@@ -39,7 +39,7 @@
                 </p-inputNumber>
               </div>
             </div>
-            <div class="col-6">
+            <div class="xl:col-6 sm:col-12">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº do Pedido</label>
                 <p-inputNumber
@@ -52,7 +52,7 @@
                 </p-inputNumber>
               </div>
             </div>
-            <div class="col-6">
+            <div class="xl:col-6 sm:col-12">
               <div class="flex flex-column gap-2">
                 <label
                   style="overflow: hidden; white-space: nowrap"
@@ -69,7 +69,7 @@
                 </p-inputNumber>
               </div>
             </div>
-            <!--  <div class="col-6">
+            <!--  <div class="xl:col-6 sm:col-12">
               <div class="flex flex-column gap-2">
                 <label for="username">Nº da Nota Fiscal</label>
                 <input
@@ -81,7 +81,7 @@
               </div>
             </div> -->
 
-            <div class="col-6">
+            <div class="xl:col-6 sm:col-12">
               <div class="flex flex-column gap-2">
                 <label for="username">Período</label>
                 <p-calendar
@@ -201,12 +201,19 @@
 >
   <div class="card">
     <div class="grid">
+      <div class="col-12">
+        <span class="text-400">Tempo de separação do pedido: </span>
+        <span style="font-size: 1rem;" class="text-400 font-bold">
+          <cd-timer format="hms" ></cd-timer>
+        </span>
+
+      </div>
       <div class="xl:col-6 sm:col-12">
         <div class="p-3 border-round-sm surface-100">
-          <span class="text-400">Nº do Cliente</span>
+          <span class="text-400">Nome do Cliente</span>
           <p style="font-size: 1.4rem" class="font-bold">
             <strong>{{
-              pedido && pedido.contato ? pedido.contato.id : 0
+              pedido && pedido.contato ? pedido.contato.nome : 0
             }}</strong>
           </p>
         </div>
@@ -223,7 +230,7 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Nº do Pedido - Loja Virtual </span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ pedido.loja ? pedido.loja.id : 0 }}</strong>
+            <strong>{{ pedido.numeroLoja ? pedido.numeroLoja : 0 }}</strong>
           </p>
         </div>
       </div>
@@ -231,7 +238,8 @@
         <div class="p-3 border-round-sm surface-100">
           <span class="text-400">Modalidade de Envio </span>
           <p style="font-size: 1.4rem" class="font-bold">
-            <strong>{{ modalidadeEnvio(pedido.transporte.volumes) }}</strong>
+            <strong>{{  pedido.transporte.volumes && pedido.transporte.volumes.length > 0
+              ? modalidadeEnvio(pedido.transporte.volumes) : 'Sem serviço de envio' }}</strong>
           </p>
         </div>
       </div>
@@ -287,18 +295,20 @@
                     style="color: #000; margin-top: 5px"
                     #name
                   ></div>
+                  <div class="footer">
+                    <span style="color: #000; font-size: 9px" #sku></span>
+                    <span style="color: #000; font-size: 9px" #qtde></span>
+                    <!-- <span style="color: #000; font-size: 9px" class="date">{{
+                      hoje | date : "dd/MM/yyyy"
+                    }}</span> -->
+                  </div>
                   <div
                     class="barcode-holder"
-                    style="color: #000; margin-top: 15px"
+                    style="color: #000;"
                   >
                     <img alt="codigoDeBarra" #barcodeElement />
                   </div>
-                  <div class="footer">
-                    <span style="color: #000; font-size: 9px" #sku></span>
-                    <span style="color: #000; font-size: 9px" class="date">{{
-                      hoje | date : "dd/MM/yyyy"
-                    }}</span>
-                  </div>
+
                 </span>
               </div>
               <div class="col-2 flex justify-content-center">
@@ -313,23 +323,48 @@
         </tr>
       </ng-template>
     </p-table>
-    <div class="flex gap-3 justify-content-center p-3">
-      <p-button
-      severity="success"
-      (click)="printAll()"
-      label="Imprimir todas as etiquetas - Itens"
-    ></p-button>
-      <p-button
+    <div class="buttonWrapper col-12  gap-3 justify-content-center p-3">
+
+        <p-button
+        class="col-lg-4 col-md-6 col-sm-12"
+        severity="success"
+        (click)="printAll()"
+        pTooltip="Imprime as etiquetas dos itens do pedido"
+        icon="pi pi-print"
+        label=" Imprimir todas as etiquetas - Itens"
+      ></p-button>
+
+
+        <p-button
+        class="col-lg-4 col-md-6 col-sm-12"
         (click)="getEtiquete([pedido.id])"
         severity="success"
-        label="Imprimir etiquetas de transporte"
+        pTooltip="Imprime etiqueta de transporte"
+        icon="pi pi-ticket"
+        label=" Imprimir etiquetas de transporte"
       ></p-button>
-      <p-button
+
+        <p-button
+        class="col-lg-4 col-md-6 col-sm-12"
+          (click)="getNfeData(pedido.notaFiscal.id)"
+          severity="success"
+          pTooltip="Imprime Danfe Simplificada"
+          icon="pi pi-file-o"
+          label=" Danfe Simplificada"
+        ></p-button>
+
+
+        <p-button
+        class="col-lg-4 col-md-6 col-sm-12"
         (click)="putSituation(pedido.id, situacoes[1].id)"
         severity="success"
         label="Liberar para expedição (Atendido)"
+        pTooltip="Muda status do pedido para [Atendido]"
+        icon="pi pi-check-circle"
         [outlined]="true"
       ></p-button>
+
+
     </div>
   </div>
 </p-dialog>

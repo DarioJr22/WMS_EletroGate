@@ -42,7 +42,27 @@
     border: 1px solid #22c55e;
 }
 
+.p-dropdown{
+  width: 100% !important;
 
+}
 
+.p-dropdown:hover{
+  outline: 0 none;
+      outline-offset: 0;
+      box-shadow: 0 0 0 0.2rem #bffec2;
+      border-color: #378204;
+}
+.p-dropdown:focus{
+  outline: 0 none;
+      outline-offset: 0;
+      box-shadow: 0 0 0 0.2rem #bffec2;
+      border-color: #378204;
+}
+
+.p-dropdown-clear-icon {
+   position: block; /**/
+
+}
 
 }

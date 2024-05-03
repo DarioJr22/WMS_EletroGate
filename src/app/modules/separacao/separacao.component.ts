@@ -79,6 +79,8 @@ export class SeparacaoComponent implements OnInit {
   @ViewChildren('name') names!: QueryList<ElementRef<any>>;
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
   @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
+  @ViewChildren('qtde') qtde!: QueryList<ElementRef<any>>;
+
 
   constructor(
     // private cookie: CookieService,
@@ -113,10 +115,9 @@ export class SeparacaoComponent implements OnInit {
             this.barcodeElements
               .toArray()
               .forEach((el: ElementRef<HTMLImageElement>, idx) => {
-                this.names.toArray()[idx].nativeElement.innerHTML =
-                  this.pedido.itens[idx].descricao;
-                this.skus.toArray()[idx].nativeElement.innerHTML =
-                  this.pedido.itens[idx].codigo;
+                this.names.toArray()[idx].nativeElement.innerHTML = this.pedido.itens[idx].descricao;
+                this.skus.toArray()[idx].nativeElement.innerHTML = this.pedido.itens[idx].codigo;
+                this.qtde.toArray()[idx].nativeElement.innerHTML = `Qtde: ${this.pedido.itens[idx].quantidade}`;
                 JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
                   format: 'CODE128',
                   lineColor: '#000000',
@@ -146,6 +147,7 @@ export class SeparacaoComponent implements OnInit {
   ngOnInit(): void {
     //Inicializa os parâmetros de busca
     this.getInitialDateRange();
+    this.getLogisticas()
     let paramsChat = this.fillParamsFilter([
       situacoes[9].id,
       situacoes[8].id,
@@ -313,7 +315,10 @@ export class SeparacaoComponent implements OnInit {
     }
       </style>
     </header>
-    <body>${printContents}</body>
+    <body>
+
+
+    ${printContents}</body>
     </html>`);
     windowPrint!.document.close();
     windowPrint!.focus();
@@ -413,6 +418,7 @@ export class SeparacaoComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
+         /*  this.getDataDetail(this.dadosFilter) */
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -608,4 +614,106 @@ export class SeparacaoComponent implements OnInit {
     //Seta um range datas de hoje até 30 dias atrás
     this.form.controls['data'].setValue(this.getDateRange(30));
   }
+
+  logisticas:any = []
+  logisticaSelected: any  = []
+
+  getLogisticas(){
+    this.isLoading = true
+    this.logisticasService.getLogisticas().subscribe({
+      next: (res: any) => {
+        this.logisticas = res.data;
+      },
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
+        this.isLoading = false
+      },
+      complete: () => {
+        this.isLoading = false
+      },
+    })
+  }
+
+  servicos:any = []
+
+  getIdLog(id:any){
+    this.logisticasService.getLogisticasServico(id).subscribe({
+      next: (res: any) => {
+        this.servicos = res.data;
+      },
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
+      },complete: () => {
+
+      }
+    }
+  )
+  console.log(this.servicos);
+
 }
+
+  ordersDetail:any = [];
+  nfs:any = [];
+  nfSelected: any  = []
+  getDataDetail(dadosFilter:any[]){
+    let intervalo = interval(1000);
+    let nr = 0;
+    let id = 0;
+    let subs = intervalo.subscribe((n) => {
+      //Caso ainda tenham registros no array
+      if(dadosFilter[nr]){
+      //Recupera o id do registro
+        id = dadosFilter[nr].id;
+      //Aumenta o contador
+        nr += 1;
+        this.pedidoServ.getPedidosDetail(id).subscribe({
+          next: (res: any) => {
+            let i = res.data
+            this.ordersDetail.push(res.data);
+            this.nfs.push({value:`${i.notaFiscal.id}`})
+
+            console.log(this.ordersDetail);
+            console.log(this.nfs);
+
+
+          },
+          error: (err: any) => {
+            this.notify.notify({
+              message: `Erro: ${this.pedidoServ.handleError(err)}`,
+              type: NotificationType.ERROR,
+              });
+            },
+            complete: () => {
+
+            }
+          }
+        )
+        if(nr == this.ordersDetail.length){
+
+            subs.unsubscribe();
+
+          }
+        }
+      }
+    );
+  }
+
+  limparFiltro(){
+    this.nfSelected = {value:''}
+    this.logisticaSelected = {descricao:''}
+  }
+
+  filter(){
+    this.ordersDetail = this.ordersDetail.filter( (i:any) =>
+      i.notaFiscal.id.toString().includes(this.nfSelected.value) &&
+      i.logistica.id == this.logisticaSelected.value);
+  }
+
+}
+

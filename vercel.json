@@ -3,6 +3,14 @@
     {
       "source": "/Api/:path*",
       "destination": "https://www.bling.com.br/Api/:path*"
+    },
+    {
+      "source": "/doc.view.php/:path*",
+      "destination": "https://www.bling.com.br/doc.view.php/:path*"
+    },
+    {
+      "source": "/relatorios/:path*",
+      "destination": "https://www.bling.com.br/relatorios/:path*"
     }
   ]
 }

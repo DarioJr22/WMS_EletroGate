@@ -1,10 +1,10 @@
 const PROXY_CONFIG = [
   {
-  context: ['/Api'],
+  context: ['/Api','/doc.view.php','/relatorios'],
   target: 'https://www.bling.com.br/',
   secure:false,
   changeOrigin: true,
-  pathRewrite: { '^/': '' }
+  pathRewrite: { '^/': '/' }
   }
   ];
   module.exports = PROXY_CONFIG;

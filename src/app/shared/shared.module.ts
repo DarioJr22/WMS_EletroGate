@@ -55,6 +55,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { NotificationComponent } from './notification/notification.component';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading/loading.component';
+import { CdTimerModule } from 'angular-cd-timer';
 // bootstrapApplication(AppComponent, {
 //     providers: [provideEnvironmentNgxMask()],
 // }).catch((err) => console.error(err));
@@ -118,6 +119,7 @@ import { LoadingComponent } from './loading/loading.component';
     ToolbarModule,
     MegaMenuModule,
     TooltipModule,
+    CdTimerModule
   ],
 
   exports: [
@@ -174,7 +176,8 @@ import { LoadingComponent } from './loading/loading.component';
     TooltipModule,
     MegaMenuModule,
     NotificationComponent,
-    LoadingComponent
+    LoadingComponent,
+    CdTimerModule
   ],
   providers: [
     MessageService,

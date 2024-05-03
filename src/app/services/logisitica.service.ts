@@ -71,4 +71,22 @@ export class LogisticasService {
    window.open(url,'_blank')?.addEventListener('load',(e) => console.log(e))
 
   }
+
+  getLogisticas(){
+    const token: any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get('/Api/v3/logisticas?situacao=H', { headers: header })
+  }
+
+  getLogisticasServico(id:any){
+    const token: any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get('/Api/v3/logisticas/'+id, { headers: header })
+  }
 }

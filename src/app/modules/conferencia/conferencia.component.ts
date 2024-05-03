@@ -19,6 +19,8 @@ import { Objeto } from '../separacao/separacao.component';
 import { interval } from 'rxjs';
 import * as JsBarcode from 'jsbarcode';
 
+import {NFeXML } from '../../services/NFs'
+
 @Component({
   selector: 'app-conferencia',
   templateUrl: './conferencia.component.html',
@@ -49,6 +51,7 @@ export class ConferenciaComponent implements OnInit {
   @ViewChildren('name') names!: QueryList<ElementRef<any>>;
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
   @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
+  @ViewChildren('qtde') qtde!: QueryList<ElementRef<any>>;
 
   constructor(
     // private cookie: CookieService,
@@ -87,6 +90,7 @@ export class ConferenciaComponent implements OnInit {
                   this.pedido.itens[idx].descricao;
                 this.skus.toArray()[idx].nativeElement.innerHTML =
                   this.pedido.itens[idx].codigo;
+                  this.qtde.toArray()[idx].nativeElement.innerHTML = `Qtde: ${this.pedido.itens[idx].quantidade}`;
                 JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
                   format: 'CODE128',
                   lineColor: '#000000',
@@ -116,6 +120,7 @@ export class ConferenciaComponent implements OnInit {
   ngOnInit(): void {
     //Inicializa os parâmetros de busca
     this.getInitialDateRange();
+
     let paramsChat = this.fillParamsFilter([
       situacoes[9].id,
       situacoes[8].id,
@@ -125,6 +130,7 @@ export class ConferenciaComponent implements OnInit {
     let paramsTable = this.fillParamsFilter([situacoes[10].id]);
     this.getPedidos(paramsTable, 'table');
     this.getPedidos(paramsChat, 'chart');
+
     this.createChart();
   }
 
@@ -394,6 +400,10 @@ export class ConferenciaComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
+/*           this.getOrderTest(20204889340);
+          this.getOrderTest(20207390498); */
+          this.getOrderTest(20203245016);
+
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -415,6 +425,10 @@ export class ConferenciaComponent implements OnInit {
       },
     });
   }
+
+
+
+
 
   reloadTable() {
     this.dadosFilter = [];
@@ -622,5 +636,217 @@ export class ConferenciaComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+
+
+  //Obter dados da nota fiscal
+  getNfeData(idNfe:number){
+    this.pedidoServ.getNF(idNfe).subscribe({
+      next: (res: any) => {
+        console.log('Nfe', res)
+        // Gerar NF
+        this.gerarNFE(res.data.linkDanfe,res.data.xml)
+        // Obter xml
+
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR
+        })
+      }
+  })
+}
+
+
+  //Gerar nota fiscal
+  //1º Gera a nota fiscal
+  gerarNFE(danfeURL: string, xmlUrl: string) {
+
+    this.pedidoServ.getDanfe(danfeURL).subscribe({
+      next:(res: string) => {
+        let danfe = this.formatDocument(res);
+        let windowNfe = window.open('', '_blank');
+        windowNfe!.document.write(danfe);
+
+        this.getXML(xmlUrl, res);
+        console.log(res);
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
+      }
+    })
+  }
+
+  gerarDanfe(urlXml:string, svg: any) {
+/*     this.htmlNota = data;
+
+    console.log(svg); */
+
+  }
+
+  formatDocument(document: string) {
+    let doc = document
+    doc = doc.replace("<title>Bling - </title>","<title>Bling - DANFE</title>");
+    doc = doc.replace("</style>",".p-button{cursor:pointer;color:#fff;border-radius: 0.5rem;padding:0.5rem 1rem; border-radius:0.5rem;background:#22c55e; border: 1px solid #22c55e;}.p-button:hover{border-radius:0.5rem;background:#22c55e;border: 1px solid #22c55e;} @media print{ .p-button{ visibility: hidden;}}</style>");
+    doc = doc.replace("<body>",`<button class="p-button" style="margin: 2rem" onclick="window.print()">IMPRIMIR</button>`)
+    doc = doc.replace("<style>",`<link rel="icon" type="image/x-icon" href="https://www.bling.com.br/images/favicons/logo-bling-dark-32.ico" /> <style>`)
+    return doc
+  }
+
+  getSvg(html:any){
+    let startSvg = html.indexOf('<svg');
+    let endSvg = html.indexOf('</svg>') +'</svg>'.length;
+    let svg = html.substring(startSvg, endSvg);
+    return svg
+  }
+
+  setTitle(html: string) {
+
+    let startSvg = html.indexOf('<title');
+    let endSvg = html.indexOf('</title>') +'</title>'.length;
+    let svg = html.substring(startSvg, endSvg);
+  }
+  //Recupera o xml com os dados da nota e
+  getXML(urlXml:string, htmlDanfe?:any) {
+    this.pedidoServ.getXml(urlXml).subscribe({
+      next: (res: string) => {
+
+      //Tranformação do xml em JSON
+      let json:NFeXML = this.pedidoServ.parseXml(res);
+        console.log(json);
+
+      //Extração do código de barras
+      let svg = this.getSvg(htmlDanfe);
+
+      //Junção dos dados
+     this.extractData(json,svg).then(
+       async (data:any) => {
+
+           await this.pedidoServ.gerarDanfe(
+              data.nomeFantasia,
+              data.svgBarcode,
+              data.codigo,
+              data.protocolo,
+              data.tipo,
+              data.numero,
+              data.serie,
+              data.dataEmissao,
+              data.qtde,
+              data.doc,
+              data.destIE,
+              data.nome,
+              data.endereco,
+              data.observacao).then((danfe: any) => {
+               let windowDanfeSimplificada = window.open('', '_blank')
+               windowDanfeSimplificada!.document.write(danfe);
+              }
+            )
+        }
+
+      ).catch((err: any) => {
+        this.notify.notify({
+          message: `Erro ao extrair dados da nota: ${err}`,
+          type: NotificationType.ERROR
+        })
+      })
+
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
+      }
+    })
+  }
+
+  extractData(dados:NFeXML, svg:string
+
+
+  ){
+
+
+    const data:any = {};
+    let extractPromise = new Promise((resolve) => {
+      //Recuperação de nome fantasia
+      data.nomeFantasia = `${dados.NFe.infNFe.emit.xNome.text} </br>
+      CNPJ:${dados.NFe.infNFe.emit.CNPJ?.text} IE:${dados.NFe.infNFe.emit.IE.text}<br/>
+      ${dados.NFe.infNFe.emit.enderEmit?.xLgr.text}, ${dados.NFe.infNFe.emit.enderEmit?.nro.text}, ${dados.NFe.infNFe.emit.enderEmit?.xCpl?.text}, ${dados.NFe.infNFe.emit.enderEmit?.xBairro.text} ${dados.NFe.infNFe.emit.enderEmit?.xMun.text} - ${dados.NFe.infNFe.emit.enderEmit?.UF.text}<br/>`;
+
+      //Dados de código - Svg
+      data.svgBarcode = svg
+
+      //Dados de código - Código
+      data.codigo = dados.protNFe.infProt.chNFe.text;
+
+      //Dados de protocolo
+      //Separação dia e hora
+      let dia =  dados.protNFe.infProt.dhRecbto.text.split('T')[0].split('-').reverse().join('/');
+      let hr = dados.protNFe.infProt.dhRecbto.text.split('T')[1].substring(0,8);
+
+      //Nº de protocolo da danfe
+      data.protocolo = `${dados.protNFe.infProt.nProt.text} ${dia} ${hr}`;
+
+      //Data de emissão
+      data.dataEmissao = `${dia}`
+
+      //Tipo da nota fisxcall
+      data.tipo = `${dados.NFe.infNFe.ide.tpNF.text == '1' ? '1 - Saída' : '0 - Entrada' }`
+
+      //Nº da nota fixcal
+      data.numero = `${dados.NFe.infNFe.ide.nNF.text}`
+
+      //Serie
+      data.serie = `${dados.NFe.infNFe.ide.serie.text}`
+
+      //Numero do documento do caboclo
+      data.doc = `${dados.NFe.infNFe.dest.CNPJ?.text ? this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CNPJ?.text,'pj')  : this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CPF?.text,'pf')}`
+
+      //IE do documento do caboclo
+      data.destIE = `${dados.NFe.infNFe.dest.CNPJ?.text ? 'IE:' + dados.NFe.infNFe.dest.IE?.text : '' }`
+
+      //Nome do documento do caboclo
+      data.nome = `${dados.NFe.infNFe.dest.xNome.text }`
+
+      //Quantidade de itens
+      data.qtde = `${dados.NFe.infNFe.det.length ? dados.NFe.infNFe.det.length : 1}`
+
+      //Endereço
+      data.endereco = `${dados.NFe.infNFe.dest.enderDest?.xLgr.text}, ${dados.NFe.infNFe.dest.enderDest?.nro.text} ${dados.NFe.infNFe.dest.enderDest?.xCpl?.text ? ', '+ dados.NFe.infNFe.dest.enderDest?.xCpl?.text : ''} , ${dados.NFe.infNFe.dest.enderDest?.xBairro.text} ${dados.NFe.infNFe.dest.enderDest?.xMun.text} - ${dados.NFe.infNFe.dest.enderDest?.UF.text}`
+
+      data.observacao = `${dados.NFe.infNFe.infAdic.infCpl.text}`
+
+      resolve(data)
+
+    })
+
+    return extractPromise;
+  }
+
+
+  getOrderTest(id: number) {
+    this.isLoading = true
+    this.pedidoServ.getPedidosDetail(id).subscribe({
+      next: (res: any) => {
+        let itens:Objeto[] = [];
+        itens.push(res.data);
+        this.dadosFilter.push(...itens);
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
+      }
+    })
   }
 }
