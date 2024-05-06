@@ -32,6 +32,7 @@
                   mode="decimal"
                   inputId="withoutgrouping"
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -45,6 +46,7 @@
                   mode="decimal"
                   inputId="withoutgrouping"
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -62,6 +64,7 @@
                   mode="decimal"
                   inputId="withoutgrouping"
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -123,7 +126,7 @@
   <div class="card">
 
     <div  style="width: 100%;">
-      <!-- <h1>Filtro</h1>
+       <h1>Filtro</h1>
       <div class="flex m-3 justify-content-center">
       <div class="col-5">
         <div style="width: 100%;" class="flex flex-column gap-2">
@@ -138,7 +141,7 @@
           </p-dropdown>
         </div>
       </div>
-      <div class="col-5">
+     <!--  <div class="col-5">
         <div style="width: 100%;" class="flex flex-column gap-2">
             <label  for="username">NF</label>
             <p-dropdown
@@ -149,7 +152,7 @@
             placeholder="Seleciona a opção logistica">
           </p-dropdown>
         </div>
-      </div>
+      </div> -->
       <div style="display: flex;
       align-items: end;
       justify-content: start;" class="col-1">
@@ -163,7 +166,7 @@
         ></p-button>
       </div>
 
-    </div> -->
+    </div><!-- -->
 
 
 
@@ -368,7 +371,7 @@
                       class="barcode-holder"
                       style="color: #000;"
                     >
-                      <img alt="codigoDeBarra" #barcodeElement />
+                      <svg alt="codigoDeBarra" #barcodeElement></svg>
                     </div>
                   </span>
 

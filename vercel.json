@@ -11,6 +11,10 @@
     {
       "source": "/relatorios/:path*",
       "destination": "https://www.bling.com.br/relatorios/:path*"
+    },
+    {
+      "source": "/bling/:path*",
+      "destination": "https://bling-storage.s3.sa-east-1.amazonaws.com/bling/:path*"
     }
   ]
 }

@@ -9,6 +9,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as JsBarcode from 'jsbarcode';
 import { interval } from 'rxjs';
+import Utils from 'src/app/services/Utils';
 import { situacoes } from 'src/app/services/itens';
 import { LogisticasService } from 'src/app/services/logisitica.service';
 import { NotificationType } from 'src/app/services/notification';
@@ -81,7 +82,11 @@ export class SeparacaoComponent implements OnInit {
   @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
   @ViewChildren('qtde') qtde!: QueryList<ElementRef<any>>;
 
-
+  searchOnEnter(e:KeyboardEvent | Date){
+   if(e instanceof KeyboardEvent && e.code == "Enter" || e instanceof Date){
+      this.buscarItemLista()
+   }
+  }
   constructor(
     // private cookie: CookieService,
     private userService: UserService,
@@ -112,6 +117,7 @@ export class SeparacaoComponent implements OnInit {
           if (n == 4) {
             subs.unsubscribe();
           } else {
+            //Recupera todos os códigos de barra não renderizados em tela e utiliza o indice dos mesmo para passar dados para os itens
             this.barcodeElements
               .toArray()
               .forEach((el: ElementRef<HTMLImageElement>, idx) => {
@@ -122,12 +128,20 @@ export class SeparacaoComponent implements OnInit {
                   format: 'CODE128',
                   lineColor: '#000000',
                   textAlign: 'center',
-                  width: 1,
+                  width: Utils.defineWidthBarCode(this.pedido.itens[idx].codigo),
                   height: 25,
                   margin: 0,
                   displayValue: false,
                 });
+
+                let barcode:any = el.nativeElement;
+
+                //Se o tamanho do código de barras for maior do que o tamanho da etiqueta
+                if(barcode.width && barcode.width.animVal.value > 150){
+                  el.nativeElement.innerHTML = this.pedido.itens[idx].descricao;
+                }
               });
+              //Caso o código seja maior do que a label então aplica uma formatação menor nele: tamanho 0.5
             result(true);
           }
         },
@@ -143,6 +157,8 @@ export class SeparacaoComponent implements OnInit {
 
     return promise;
   }
+
+
 
   ngOnInit(): void {
     //Inicializa os parâmetros de busca

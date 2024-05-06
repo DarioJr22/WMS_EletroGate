@@ -56,6 +56,7 @@ import { NotificationComponent } from './notification/notification.component';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading/loading.component';
 import { CdTimerModule } from 'angular-cd-timer';
+import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
 // bootstrapApplication(AppComponent, {
 //     providers: [provideEnvironmentNgxMask()],
 // }).catch((err) => console.error(err));
@@ -63,7 +64,8 @@ import { CdTimerModule } from 'angular-cd-timer';
 @NgModule({
   declarations: [
     NotificationComponent,
-    LoadingComponent
+    LoadingComponent,
+    PdfViewerComponent
   ],
   imports: [
     CommonModule,
@@ -177,7 +179,8 @@ import { CdTimerModule } from 'angular-cd-timer';
     MegaMenuModule,
     NotificationComponent,
     LoadingComponent,
-    CdTimerModule
+    CdTimerModule,
+    PdfViewerComponent
   ],
   providers: [
     MessageService,

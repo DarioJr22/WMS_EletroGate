@@ -20,7 +20,7 @@ import { LogisticasService } from './services/logisitica.service';
     AuthComponent,
     SeparacaoComponent,
     OpcoesComponent,
-    ConferenciaComponent,
+    ConferenciaComponent
   ],
   imports: [
     BrowserModule,

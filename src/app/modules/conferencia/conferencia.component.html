@@ -34,7 +34,9 @@
                   formControlName="numCliente"
                   mode="decimal"
                   inputId="withoutgrouping"
+
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -48,6 +50,7 @@
                   mode="decimal"
                   inputId="withoutgrouping"
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -65,6 +68,7 @@
                   mode="decimal"
                   inputId="withoutgrouping"
                   [useGrouping]="false"
+                  (onKeyDown)="searchOnEnter($event)"
                 >
                 </p-inputNumber>
               </div>
@@ -309,7 +313,7 @@
                       class="barcode-holder"
                       style="color: #000;"
                     >
-                      <img alt="codigoDeBarra" #barcodeElement />
+                      <svg alt="codigoDeBarra" #barcodeElement ></svg>
                     </div>
                   </span>
 
@@ -331,7 +335,7 @@
     <div class="buttonWrapper col-12  gap-3 justify-content-center p-3">
 
         <p-button
-        class="col-lg-4 col-md-6 col-sm-12"
+        class="xl:col-4 sm:col-12"
         severity="success"
         (click)="printAll()"
         pTooltip="Imprime as etiquetas dos itens do pedido"
@@ -341,26 +345,16 @@
 
 
         <p-button
-        class="col-lg-4 col-md-6 col-sm-12"
-        (click)="getEtiquete([pedido.id])"
+        class="xl:col-4 sm:col-12"
+        (click)="gerarEtqDanfe([pedido.id],pedido.notaFiscal.id)"
         severity="success"
-        pTooltip="Imprime etiqueta de transporte"
+        pTooltip="Imprime etiqueta de transporte + Danfe Simplificada"
         icon="pi pi-ticket"
         label=" Imprimir etiquetas de transporte"
       ></p-button>
 
         <p-button
-        class="col-lg-4 col-md-6 col-sm-12"
-          (click)="getNfeData(pedido.notaFiscal.id)"
-          severity="success"
-          pTooltip="Imprime Danfe Simplificada"
-          icon="pi pi-file-o"
-          label=" Danfe Simplificada"
-        ></p-button>
-
-
-        <p-button
-        class="col-lg-4 col-md-6 col-sm-12"
+        class="xl:col-4 sm:col-12"
         (click)="putSituation(pedido.id, situacoes[1].id)"
         severity="success"
         label="Liberar para expedição (Atendido)"
@@ -373,3 +367,11 @@
     </div>
   </div>
 </p-dialog>
+
+<pdf-viewer
+[header]="'Pdf Viewer'"
+[url]="urlPdf"
+[display]="visualizarDialogPdf"
+*ngIf="visualizarDialogPdf">
+
+</pdf-viewer>

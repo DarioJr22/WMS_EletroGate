@@ -16,10 +16,11 @@ import { NotificationType } from 'src/app/services/notification';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
 import { Objeto } from '../separacao/separacao.component';
-import { interval } from 'rxjs';
+import { Observable, catchError, forkJoin, interval, map, of, switchMap } from 'rxjs';
 import * as JsBarcode from 'jsbarcode';
 
 import {NFeXML } from '../../services/NFs'
+import Utils from 'src/app/services/Utils';
 
 @Component({
   selector: 'app-conferencia',
@@ -41,6 +42,7 @@ export class ConferenciaComponent implements OnInit {
   isLoading: boolean = false;
 
   visualizarDialog = false;
+  visualizarDialogPdf = false;
   first = 0;
   rows = 10;
   hoje = new Date();
@@ -95,11 +97,18 @@ export class ConferenciaComponent implements OnInit {
                   format: 'CODE128',
                   lineColor: '#000000',
                   textAlign: 'center',
-                  width: 1,
+                  width: Utils.defineWidthBarCode(this.pedido.itens[idx].codigo),
                   height: 25,
                   margin: 0,
                   displayValue: false,
                 });
+
+                let barcode:any = el.nativeElement;
+
+                //Se o tamanho do código de barras for maior do que o tamanho da etiqueta
+                if(barcode.width && barcode.width.animVal.value > 150){
+                  el.nativeElement.innerHTML = this.pedido.itens[idx].descricao;
+                }
               });
             result(true);
           }
@@ -613,16 +622,29 @@ export class ConferenciaComponent implements OnInit {
     this.form.controls['data'].setValue(this.getDateRange(30));
   }
 
-  getEtiquete(pedido: number[]) {
+  getEtiqueta(pedido: number[], nfId: number) {
     this.isLoading = true;
+    //Faz a requisição, mas antes adiciona etapas para recuperação de dados da nota fiscal
     this.logisticasService.getEtiquetaDeTransporte(pedido).subscribe({
       next: (res: any) => {
         console.log('Etiquetas', res);
         let result = [];
         result = res.data;
         result.map((et: { id: number; link: string; observacao: string }) =>
-          window.open(et.link)
+          {
+            window.open(et.link)
+
+            this.logisticasService.getBlob(this.formatLink(et.link)).subscribe(
+              (res: any) => {
+
+                const blobPdf = new Blob([res], { type: 'application/pdf' });
+                Utils.addImgeToPDF(this.simplDanfe,blobPdf)
+             }
+            )
+
+          }
         ); // window.open(et.link,'_blank'))
+
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -639,6 +661,10 @@ export class ConferenciaComponent implements OnInit {
   }
 
 
+  formatLink(link: string) {
+    let linkFormated = link.split('aws.com')[1];
+    return linkFormated;
+  }
 
   //Obter dados da nota fiscal
   getNfeData(idNfe:number){
@@ -663,33 +689,7 @@ export class ConferenciaComponent implements OnInit {
 
   //Gerar nota fiscal
   //1º Gera a nota fiscal
-  gerarNFE(danfeURL: string, xmlUrl: string) {
 
-    this.pedidoServ.getDanfe(danfeURL).subscribe({
-      next:(res: string) => {
-        let danfe = this.formatDocument(res);
-        let windowNfe = window.open('', '_blank');
-        windowNfe!.document.write(danfe);
-
-        this.getXML(xmlUrl, res);
-        console.log(res);
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        this.notify.notify({
-          message: `Erro: ${this.pedidoServ.handleError(err)}`,
-          type: NotificationType.ERROR,
-        })
-      }
-    })
-  }
-
-  gerarDanfe(urlXml:string, svg: any) {
-/*     this.htmlNota = data;
-
-    console.log(svg); */
-
-  }
 
   formatDocument(document: string) {
     let doc = document
@@ -700,6 +700,9 @@ export class ConferenciaComponent implements OnInit {
     return doc
   }
 
+
+  simplDanfe:string = ''
+  simplDanfeData:any = ''
   getSvg(html:any){
     let startSvg = html.indexOf('<svg');
     let endSvg = html.indexOf('</svg>') +'</svg>'.length;
@@ -712,6 +715,131 @@ export class ConferenciaComponent implements OnInit {
     let startSvg = html.indexOf('<title');
     let endSvg = html.indexOf('</title>') +'</title>'.length;
     let svg = html.substring(startSvg, endSvg);
+  }
+
+
+  urlPdf: string = '';
+  gerarEtqDanfe(pedidoId: number[], nfId: number) {
+    this.isLoading = true;
+    let nfData: any
+    //Faz fluxo de obtenção da danfe simplificada
+    this.pedidoServ.getNF(nfId).pipe(
+    //Requisição de recuperação de informações da Nota
+      switchMap((nfData:any) => {
+        const xml = nfData.data.xml;
+        return this.pedidoServ.getDanfe(nfData.data.linkDanfe).pipe(
+      //Obtem a danfe para recolhimento de dados
+      switchMap((danfeData:any) => {
+        const htmlDanfe = danfeData;
+      //Obtem o xml da nota para recolhimento de dados
+        return this.pedidoServ.getXml(xml).pipe(
+      switchMap((xmlData:any) => {
+      //Tranformação do xml em JSON
+        let json = this.pedidoServ.parseXml(xmlData);
+      //Pega o svg do código de barras que tá no xml
+        let svg = this.getSvg(htmlDanfe);
+        console.log(json,svg);
+      //Extração de dados do xml / Disposição desses dados num html
+        return this.extractData(json,svg).pipe(
+      switchMap((data:any) => {
+        console.log('data',data);
+        this.simplDanfeData = data;
+        //Retorna a danfe simplificada
+       return this.pedidoServ.gerarDanfeSimplificadoHtml(
+              data.nomeFantasia,
+              data.svgBarcode,
+              data.codigo,
+              data.protocolo,
+              data.tipo,
+              data.numero,
+              data.serie,
+              data.dataEmissao,
+              data.qtde,
+              data.doc,
+              data.destIE,
+              data.nome,
+              data.endereco,
+              data.observacao
+       ).pipe(
+       switchMap((simplDanfe:any) => {
+         this.simplDanfe = simplDanfe;
+         return this.logisticasService.getEtiquetaDeTransporte(pedidoId).pipe(
+        //Retorna os dados da etiqueta de transporte // Links
+        switchMap((res:any) => {
+            let etq = [];
+            let result:Observable<any>[] = [];
+            etq = res.data;
+
+            //Cria uma observable para cada link recuperado
+            //Levando em consideração que em alguns casos serão necessários várias etiquetas de trasporte.
+            result = etq.map((element: any) => {
+              return this.logisticasService.getBlob(  this.formatLink(element.link))
+            });
+            //Executa todas ao mesmo tempo usando forkjoin
+            return forkJoin(result)
+            }),
+
+            map(res => res)
+          )
+        })
+       )
+
+
+      })
+      )
+    })
+  )
+})
+)
+}),
+      catchError((err: any) => {
+        console.log(err);
+
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR
+        })
+        return of(null)
+      })
+    ).subscribe({
+      next: async (blob: any) => {
+        console.log(blob);
+        let pdf = await Utils.addImgeToPDF(this.simplDanfeData,blob[0])
+        let url = URL.createObjectURL(pdf);
+        this.urlPdf = url;
+        this.visualizarDialogPdf = true;
+
+         this.isLoading = false;
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${err}`,
+          type: NotificationType.ERROR
+        })
+      },
+      complete:() => {
+        this.isLoading = false;
+      }
+    })
+
+  }
+
+  gerarNFE(danfeURL: string, xmlUrl: string) {
+
+    this.pedidoServ.getDanfe(danfeURL).subscribe({
+      next:(res: string) => {
+        this.getXML(xmlUrl, res);
+        console.log(res);
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
+      }
+    })
   }
   //Recupera o xml com os dados da nota e
   getXML(urlXml:string, htmlDanfe?:any) {
@@ -726,10 +854,11 @@ export class ConferenciaComponent implements OnInit {
       let svg = this.getSvg(htmlDanfe);
 
       //Junção dos dados
-     this.extractData(json,svg).then(
-       async (data:any) => {
+      //Isso será executado no switchmap
+   /*   this.extractData(json,svg).subscribe(
+        (data:any) => {
 
-           await this.pedidoServ.gerarDanfe(
+            this.pedidoServ.gerarDanfeSimplificado(
               data.nomeFantasia,
               data.svgBarcode,
               data.codigo,
@@ -744,8 +873,9 @@ export class ConferenciaComponent implements OnInit {
               data.nome,
               data.endereco,
               data.observacao).then((danfe: any) => {
-               let windowDanfeSimplificada = window.open('', '_blank')
-               windowDanfeSimplificada!.document.write(danfe);
+
+                this.simplDanfe = danfe;
+
               }
             )
         }
@@ -755,7 +885,7 @@ export class ConferenciaComponent implements OnInit {
           message: `Erro ao extrair dados da nota: ${err}`,
           type: NotificationType.ERROR
         })
-      })
+      }) */
 
       },
       error: (err: any) => {
@@ -775,11 +905,9 @@ export class ConferenciaComponent implements OnInit {
 
 
     const data:any = {};
-    let extractPromise = new Promise((resolve) => {
+    let extractPromise = new Observable((subscriber) => {
       //Recuperação de nome fantasia
-      data.nomeFantasia = `${dados.NFe.infNFe.emit.xNome.text} </br>
-      CNPJ:${dados.NFe.infNFe.emit.CNPJ?.text} IE:${dados.NFe.infNFe.emit.IE.text}<br/>
-      ${dados.NFe.infNFe.emit.enderEmit?.xLgr.text}, ${dados.NFe.infNFe.emit.enderEmit?.nro.text}, ${dados.NFe.infNFe.emit.enderEmit?.xCpl?.text}, ${dados.NFe.infNFe.emit.enderEmit?.xBairro.text} ${dados.NFe.infNFe.emit.enderEmit?.xMun.text} - ${dados.NFe.infNFe.emit.enderEmit?.UF.text}<br/>`;
+      data.nomeFantasia = `${dados.NFe.infNFe.emit.xNome.text}\n${'CNPJ:'+this.pedidoServ.maskDoc(dados.NFe.infNFe.emit.CNPJ?.text,'pj')} IE:${dados.NFe.infNFe.emit.IE.text}\n${dados.NFe.infNFe.emit.enderEmit?.xLgr.text}, ${dados.NFe.infNFe.emit.enderEmit?.nro.text}, ${dados.NFe.infNFe.emit.enderEmit?.xCpl?.text}, ${dados.NFe.infNFe.emit.enderEmit?.xBairro.text}\n${dados.NFe.infNFe.emit.enderEmit?.xMun.text} - ${dados.NFe.infNFe.emit.enderEmit?.UF.text}`;
 
       //Dados de código - Svg
       data.svgBarcode = svg
@@ -824,8 +952,7 @@ export class ConferenciaComponent implements OnInit {
 
       data.observacao = `${dados.NFe.infNFe.infAdic.infCpl.text}`
 
-      resolve(data)
-
+      subscriber.next(data)
     })
 
     return extractPromise;
@@ -849,4 +976,9 @@ export class ConferenciaComponent implements OnInit {
       }
     })
   }
+  searchOnEnter(e:KeyboardEvent | Date){
+    if(e instanceof KeyboardEvent && e.code == "Enter" || e instanceof Date){
+       this.buscarItemLista()
+    }
+   }
 }

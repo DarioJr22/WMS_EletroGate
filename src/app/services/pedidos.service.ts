@@ -10,6 +10,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Config } from './config';
 import { TokenService } from './token.service';
 import { BuscaParams } from '../shared/params';
+import { Observable } from 'rxjs';
 
 interface JsonElement {
   [key: string]: any;
@@ -140,24 +141,31 @@ export class PedidosService {
     );
   }
 
-  handleError(error: HttpErrorResponse) {
-    let titulo = error.error.error.description;
-    let fields = error.error.error.fields
+  handleError(error: any) {
+    let erro = error
+
+    if(error.error.error){
+      let titulo = error.error.error.description;
+      let fields = error.error.error.fields
       ? error.error.error.fields.map((i: any) => `- ${i.msg} <br>`)
       : error.error.error.message ? error.error.error.message :
       'Sem campos';
 
+      erro =  `${titulo}
+      <br>
+        Campo(s):
+      <br>
+      ${fields}`;
 
     if(error.error.error.type == 'invalid_token'){
+      //TODO - Inserir notificação aqui e view de notificação em opções
       this.tokenService.limparLocalStorage();
       this.router.navigate(['/']);
     }
+    }
 
-    return `${titulo}
-    <br>
-      Campo(s):
-    <br>
-    ${fields}`;
+
+    return erro
   }
 
 
@@ -214,7 +222,7 @@ export class PedidosService {
   }
 
 
-  gerarDanfe(
+  gerarDanfeSimplificadoHtml(
     nomeFantasia: string,
     svgBarcode?: string,
     codigo?:string,
@@ -229,7 +237,7 @@ export class PedidosService {
     nome?:string,
     endereco?:string,
     observacao?:string
-  ):Promise<any> {
+  ):Observable<any> {
     let template = `
     <!DOCTYPE html>
       <html>
@@ -347,8 +355,8 @@ export class PedidosService {
       </html>
 
     `
- return new Promise((resolve, reject) => {
-    resolve(template)
+ return new Observable((subscriber) => {
+    subscriber.next(template)
   })
 
   }

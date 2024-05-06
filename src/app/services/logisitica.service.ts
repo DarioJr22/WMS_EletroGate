@@ -41,6 +41,11 @@ export class LogisticasService {
     return this.http.get(urlToken, { headers: header });
   }
 
+  getBlob(url: string) {
+    return this.http.get(url,{responseType: 'blob'});
+
+  }
+
   getPDFUrl(url: string) {
     //Visualizador do arquivo de pdf
     return this.http.get(url, {
@@ -89,4 +94,7 @@ export class LogisticasService {
 
     return this.http.get('/Api/v3/logisticas/'+id, { headers: header })
   }
+
+
+
 }
