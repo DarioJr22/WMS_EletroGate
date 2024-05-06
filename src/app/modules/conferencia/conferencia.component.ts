@@ -720,6 +720,7 @@ export class ConferenciaComponent implements OnInit {
 
   urlPdf: string = '';
   gerarEtqDanfe(pedidoId: number[], nfId: number) {
+    this.visualizarDialogPdf = false
     this.isLoading = true;
     let nfData: any
     //Faz fluxo de obtenção da danfe simplificada
@@ -780,12 +781,10 @@ export class ConferenciaComponent implements OnInit {
             }),
 
             map(res => res)
+            )
+           })
           )
         })
-       )
-
-
-      })
       )
     })
   )
@@ -807,8 +806,8 @@ export class ConferenciaComponent implements OnInit {
         let pdf = await Utils.addImgeToPDF(this.simplDanfeData,blob[0])
         let url = URL.createObjectURL(pdf);
         this.urlPdf = url;
-        this.visualizarDialogPdf = true;
 
+        this.visualizarDialogPdf = true;
          this.isLoading = false;
       },
       error: (err: any) => {
@@ -819,7 +818,9 @@ export class ConferenciaComponent implements OnInit {
         })
       },
       complete:() => {
+        this.visualizarDialogPdf = true;
         this.isLoading = false;
+
       }
     })
 
