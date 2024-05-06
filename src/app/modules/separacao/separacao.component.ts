@@ -188,7 +188,6 @@ export class SeparacaoComponent implements OnInit {
         .map((el) => el.nativeElement.innerHTML)
         .join(' \n');
 
-      console.log(content);
 
       // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
       const windowPrint = window.open(
@@ -359,7 +358,6 @@ export class SeparacaoComponent implements OnInit {
         this.getSituacoes(id);
       },
       error: (err: any) => {
-        console.log(err);
       },
     });
   }
@@ -367,10 +365,8 @@ export class SeparacaoComponent implements OnInit {
   getSituacoes(idModule: number) {
     this.pedidoServ.getSituations(idModule).subscribe({
       next: (res: any) => {
-        console.log(this.situacoes);
       },
       error: (err: any) => {
-        console.log(err);
 
         /*    this.tokenService.limparLocalStorage();
         this.router.navigate(['/']); */
@@ -670,7 +666,6 @@ export class SeparacaoComponent implements OnInit {
       }
     }
   )
-  console.log(this.servicos);
 
 }
 
@@ -694,8 +689,6 @@ export class SeparacaoComponent implements OnInit {
             this.ordersDetail.push(res.data);
             this.nfs.push({value:`${i.notaFiscal.id}`})
 
-            console.log(this.ordersDetail);
-            console.log(this.nfs);
 
 
           },

@@ -155,7 +155,7 @@ export class ConferenciaComponent implements OnInit {
         .map((el) => el.nativeElement.innerHTML)
         .join(' \n');
 
-      console.log(content);
+
 
       // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
       const windowPrint = window.open(
@@ -338,7 +338,6 @@ export class ConferenciaComponent implements OnInit {
   getSituacoes(idModule: number) {
     this.pedidoServ.getSituations(idModule).subscribe({
       next: (res: any) => {
-        console.log(this.situacoes);
       },
       error: (err: any) => {
         this.notify.notify({
@@ -558,7 +557,6 @@ export class ConferenciaComponent implements OnInit {
       this.form.controls['numPedidoLojaVirtual'].value != null
         ? parseInt(this.form.controls['numPedidoLojaVirtual'].value)
         : null;
-        console.log(this.form.controls['data'].value);
 
     params.period = this.convertDate(this.form.controls['data'].value);
     params.pagination = { page: 1, limit: 100 };
@@ -627,7 +625,6 @@ export class ConferenciaComponent implements OnInit {
     //Faz a requisição, mas antes adiciona etapas para recuperação de dados da nota fiscal
     this.logisticasService.getEtiquetaDeTransporte(pedido).subscribe({
       next: (res: any) => {
-        console.log('Etiquetas', res);
         let result = [];
         result = res.data;
         result.map((et: { id: number; link: string; observacao: string }) =>
@@ -670,7 +667,6 @@ export class ConferenciaComponent implements OnInit {
   getNfeData(idNfe:number){
     this.pedidoServ.getNF(idNfe).subscribe({
       next: (res: any) => {
-        console.log('Nfe', res)
         // Gerar NF
         this.gerarNFE(res.data.linkDanfe,res.data.xml)
         // Obter xml
@@ -739,11 +735,9 @@ export class ConferenciaComponent implements OnInit {
         let json = this.pedidoServ.parseXml(xmlData);
       //Pega o svg do código de barras que tá no xml
         let svg = this.getSvg(htmlDanfe);
-        console.log(json,svg);
       //Extração de dados do xml / Disposição desses dados num html
         return this.extractData(json,svg).pipe(
       switchMap((data:any) => {
-        console.log('data',data);
         this.simplDanfeData = data;
         //Retorna a danfe simplificada
        return this.pedidoServ.gerarDanfeSimplificadoHtml(
@@ -792,7 +786,6 @@ export class ConferenciaComponent implements OnInit {
 )
 }),
       catchError((err: any) => {
-        console.log(err);
 
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
@@ -802,7 +795,6 @@ export class ConferenciaComponent implements OnInit {
       })
     ).subscribe({
       next: async (blob: any) => {
-        console.log(blob);
         let pdf = await Utils.addImgeToPDF(this.simplDanfeData,blob[0])
         let url = URL.createObjectURL(pdf);
         this.urlPdf = url;
@@ -831,7 +823,6 @@ export class ConferenciaComponent implements OnInit {
     this.pedidoServ.getDanfe(danfeURL).subscribe({
       next:(res: string) => {
         this.getXML(xmlUrl, res);
-        console.log(res);
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -849,7 +840,6 @@ export class ConferenciaComponent implements OnInit {
 
       //Tranformação do xml em JSON
       let json:NFeXML = this.pedidoServ.parseXml(res);
-        console.log(json);
 
       //Extração do código de barras
       let svg = this.getSvg(htmlDanfe);
