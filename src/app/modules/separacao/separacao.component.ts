@@ -475,6 +475,9 @@ export class SeparacaoComponent implements OnInit {
           this.putSituation(item.id, situacoes[9].id);
           this.reloadTable();
         }
+
+        //Ordenação dos pedidos em ordem alfabética por SKU
+        this.pedido.itens.sort((a:any,b:any) => a.codigo < b.codigo ? -1 : 1);
       },
       error: (err: any) => {
         this.visualizarDialog = false;

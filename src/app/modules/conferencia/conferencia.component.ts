@@ -458,6 +458,10 @@ export class ConferenciaComponent implements OnInit {
         this.visualizarDialog = true;
         this.generateBarcode().then();
         this.reloadTable();
+
+        this.pedido.itens.sort((a:any,b:any) => a.codigo < b.codigo ? -1 : 1);
+        console.log(this.pedido.itens);
+
       },
       error: (err: any) => {
         this.visualizarDialog = false;
