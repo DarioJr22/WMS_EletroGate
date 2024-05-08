@@ -43,7 +43,7 @@ label {
 /* Tamanho da etiqueta */
 .wrapper-40x25 {
   width: 40mm;
-  height: 23mm;
+  height: 25mm;
 
   padding: 0mm 1.5mm;
   background-color: #fff;
@@ -80,8 +80,7 @@ label {
 .footer {
   display: flex;
   flex-direction: row;
-  justify-content: center;
-  column-gap: 1rem;
+  justify-content: space-around;
   font-weight: 700;
   font-size: 13px;
 }
@@ -119,6 +118,7 @@ label {
    justify-content: center;
   }
 }
+
 
 
 

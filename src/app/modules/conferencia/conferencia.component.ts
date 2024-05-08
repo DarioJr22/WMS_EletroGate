@@ -16,11 +16,12 @@ import { NotificationType } from 'src/app/services/notification';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
 import { Objeto } from '../separacao/separacao.component';
-import { Observable, catchError, forkJoin, interval, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, concatMap, delayWhen, forkJoin, from, interval, map, merge, mergeMap, of, switchMap, timer } from 'rxjs';
 import * as JsBarcode from 'jsbarcode';
 
 import {NFeXML } from '../../services/NFs'
 import Utils from 'src/app/services/Utils';
+import { templatebarcode } from 'src/app/services/barcode.config';
 
 @Component({
   selector: 'app-conferencia',
@@ -72,6 +73,7 @@ export class ConferenciaComponent implements OnInit {
       data: new FormControl(),
     });
   }
+  etqEmBrancoChk: boolean = false
 
   /* Barcode */
   generateBarcode(): Promise<any> {
@@ -92,21 +94,25 @@ export class ConferenciaComponent implements OnInit {
                   this.pedido.itens[idx].descricao;
                 this.skus.toArray()[idx].nativeElement.innerHTML =
                   this.pedido.itens[idx].codigo;
-                  this.qtde.toArray()[idx].nativeElement.innerHTML = `Qtde: ${this.pedido.itens[idx].quantidade}`;
+                this.qtde.toArray()[
+                  idx
+                ].nativeElement.innerHTML = `Qtde: ${this.pedido.itens[idx].quantidade}`;
                 JsBarcode(el.nativeElement, this.pedido.itens[idx].codigo, {
                   format: 'CODE128',
                   lineColor: '#000000',
                   textAlign: 'center',
-                  width: Utils.defineWidthBarCode(this.pedido.itens[idx].codigo),
+                  width: Utils.defineWidthBarCode(
+                    this.pedido.itens[idx].codigo
+                  ),
                   height: 25,
                   margin: 0,
                   displayValue: false,
                 });
 
-                let barcode:any = el.nativeElement;
+                let barcode: any = el.nativeElement;
 
                 //Se o tamanho do código de barras for maior do que o tamanho da etiqueta
-                if(barcode.width && barcode.width.animVal.value > 150){
+                if (barcode.width && barcode.width.animVal.value > 150) {
                   el.nativeElement.innerHTML = this.pedido.itens[idx].descricao;
                 }
               });
@@ -155,77 +161,14 @@ export class ConferenciaComponent implements OnInit {
         .map((el) => el.nativeElement.innerHTML)
         .join(' \n');
 
-
-
       // Seleciona apenas o primeiro elemento encontrado, ajuste se necessário
       const windowPrint = window.open(
         '',
         '_blank',
-        'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+        'left=150,top=100,width=600,height=800,toolbar=0,scrollbars=0,status=0'
       );
-      windowPrint!.document.write(`<html>
-       <header>
-         <title>Impressão de Etiquetas - ${this.pedido.id}</title>
-         <style>
-         .wrapper-40x25 {
-           width: 40mm;
-           height: 23mm;
-
-           padding: 0mm 1.5mm;
-           background-color: #fff;
-           box-sizing: border-box;
-           display: flex;
-           flex-direction: column;
-           justify-content: space-between;
-         }
-
-       .barcode-holder {
-         text-align: center;
-         vertical-align: middle;
-         padding-top: 0.5mm;
-         height: 30px;
-         margin-left: 5px;
-       }
-
-       .titleSKU {
-         font-size: 10px;
-         font-weight: 700;
-         text-align: left;
-         max-height: 6mm;
-         margin-left: 10px;
-       }
-
-       .barcode-holder {
-         text-align: center;
-         vertical-align: middle;
-         padding-top: 0.5mm;
-         height: 30px;
-         margin-left: 5px;
-       }
-
-       .footer {
-         display: flex;
-         flex-direction: row;
-         justify-content: space-between;
-         margin-left: 10px;
-         font-weight: 700;
-         font-size: 13px;
-       }
-
-       body{
-         font-family: 'Inter var', sans-serif;
-       }
-
-
-
-         .spacer {
-           margin: 0;
-           page-break-after: always;
-         }
-         </style>
-       </header>
-       <body>${content}</body>
-       </html>`);
+      let imprimeBranco = this.etqEmBrancoChk ? 2 : ''
+      windowPrint!.document.write(templatebarcode(content,imprimeBranco));
       windowPrint!.document.close();
       windowPrint!.focus();
 
@@ -242,64 +185,10 @@ export class ConferenciaComponent implements OnInit {
     const windowPrint = window.open(
       '',
       '_blank',
-      'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+      'left=150,top=100,width=600,height=800,toolbar=0,scrollbars=0,status=0'
     );
-    windowPrint!.document.write(`<html>
-     <header>
-       <title>Impressão de Etiquetas - ${this.pedido.id}</title>
-       <style>
-       .wrapper-40x25 {
-         width: 40mm;
-         height: 23mm;
-
-         padding: 0mm 1.5mm;
-         background-color: #fff;
-         box-sizing: border-box;
-         display: flex;
-         flex-direction: column;
-         justify-content: space-between;
-       }
-
-     .barcode-holder {
-       text-align: center;
-       vertical-align: middle;
-       padding-top: 0.5mm;
-       height: 30px;
-       margin-left: 5px;
-     }
-
-     .titleSKU {
-       font-size: 10px;
-       font-weight: 700;
-       text-align: left;
-       max-height: 6mm;
-       margin-left: 10px;
-     }
-
-     .barcode-holder {
-       text-align: center;
-       vertical-align: middle;
-       padding-top: 0.5mm;
-       height: 30px;
-       margin-left: 5px;
-     }
-
-     .footer {
-       display: flex;
-       flex-direction: row;
-       justify-content: space-between;
-       margin-left: 10px;
-       font-weight: 700;
-       font-size: 13px;
-     }
-
-     body{
-       font-family: 'Inter var', sans-serif;
-     }
-       </style>
-     </header>
-     <body>${printContents}</body>
-     </html>`);
+    let imprimeBranco = this.etqEmBrancoChk ? 2 : ''
+    windowPrint!.document.write(templatebarcode(printContents,imprimeBranco));
     windowPrint!.document.close();
     windowPrint!.focus();
 
@@ -337,8 +226,7 @@ export class ConferenciaComponent implements OnInit {
 
   getSituacoes(idModule: number) {
     this.pedidoServ.getSituations(idModule).subscribe({
-      next: (res: any) => {
-      },
+      next: (res: any) => {},
       error: (err: any) => {
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
@@ -374,9 +262,7 @@ export class ConferenciaComponent implements OnInit {
           this.visualizarDialog = false;
           //Reloada a tabela
           this.dadosFilter = [];
-          let params = this.fillParamsFilter([
-            situacoes[10].id
-          ]);
+          let params = this.fillParamsFilter([situacoes[10].id]);
           this.getPedidos(params, 'table');
         }
       },
@@ -408,9 +294,8 @@ export class ConferenciaComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
-/*           this.getOrderTest(20204889340);
-          this.getOrderTest(20207390498); */
-          this.getOrderTest(20203245016);
+          this.dadosFilter.length == 1 ? this.getDetalhePedido(this.dadosFilter[0]) : '';
+
 
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
@@ -424,8 +309,7 @@ export class ConferenciaComponent implements OnInit {
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         });
-        /*         this.tokenService.limparLocalStorage();
-         this.router.navigate(['/']); */
+
         this.isLoading = false;
       },
       complete: () => {
@@ -433,10 +317,6 @@ export class ConferenciaComponent implements OnInit {
       },
     });
   }
-
-
-
-
 
   reloadTable() {
     this.dadosFilter = [];
@@ -455,13 +335,15 @@ export class ConferenciaComponent implements OnInit {
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
+        this.pedido.itens.forEach((i: any) => (i.img = ''));
         this.visualizarDialog = true;
         this.generateBarcode().then();
         this.reloadTable();
+        this.getProductDetail();
 
-        this.pedido.itens.sort((a:any,b:any) => a.codigo < b.codigo ? -1 : 1);
-        console.log(this.pedido.itens);
-
+        this.pedido.itens.sort((a: any, b: any) =>
+          a.codigo < b.codigo ? -1 : 1
+        );
       },
       error: (err: any) => {
         this.visualizarDialog = false;
@@ -569,17 +451,15 @@ export class ConferenciaComponent implements OnInit {
   }
 
   buscarItemLista() {
-
-    if(this.form.valid){
+    if (this.form.valid) {
       this.isLoading = true;
       this.reloadTable();
-    }else{
+    } else {
       this.notify.notify({
         message: 'Preencha data inicial e final !',
         type: NotificationType.WARN,
-      })
+      });
     }
-
   }
 
   convertDate(dateRange: Date[]) {
@@ -592,7 +472,6 @@ export class ConferenciaComponent implements OnInit {
     this.form.controls['numCliente'].setValue(null);
     this.form.controls['numPedido'].setValue(null);
     this.form.controls['numPedidoLojaVirtual'].setValue(null);
-
   }
 
   toggleRow(ped: any) {
@@ -631,21 +510,16 @@ export class ConferenciaComponent implements OnInit {
       next: (res: any) => {
         let result = [];
         result = res.data;
-        result.map((et: { id: number; link: string; observacao: string }) =>
-          {
-            window.open(et.link)
+        result.map((et: { id: number; link: string; observacao: string }) => {
+          window.open(et.link);
 
-            this.logisticasService.getBlob(this.formatLink(et.link)).subscribe(
-              (res: any) => {
-
-                const blobPdf = new Blob([res], { type: 'application/pdf' });
-                Utils.addImgeToPDF(this.simplDanfe,blobPdf)
-             }
-            )
-
-          }
-        ); // window.open(et.link,'_blank'))
-
+          this.logisticasService
+            .getBlob(this.formatLink(et.link))
+            .subscribe((res: any) => {
+              const blobPdf = new Blob([res], { type: 'application/pdf' });
+              Utils.addImgeToPDF(this.simplDanfe, blobPdf);
+            });
+        }); // window.open(et.link,'_blank'))
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -661,171 +535,181 @@ export class ConferenciaComponent implements OnInit {
     });
   }
 
-
   formatLink(link: string) {
     let linkFormated = link.split('aws.com')[1];
     return linkFormated;
   }
 
   //Obter dados da nota fiscal
-  getNfeData(idNfe:number){
+  getNfeData(idNfe: number) {
     this.pedidoServ.getNF(idNfe).subscribe({
       next: (res: any) => {
         // Gerar NF
-        this.gerarNFE(res.data.linkDanfe,res.data.xml)
+        this.gerarNFE(res.data.linkDanfe, res.data.xml);
         // Obter xml
-
       },
       error: (err: any) => {
         this.isLoading = false;
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
-          type: NotificationType.ERROR
-        })
-      }
-  })
-}
-
+          type: NotificationType.ERROR,
+        });
+      },
+    });
+  }
 
   //Gerar nota fiscal
   //1º Gera a nota fiscal
 
-
   formatDocument(document: string) {
-    let doc = document
-    doc = doc.replace("<title>Bling - </title>","<title>Bling - DANFE</title>");
-    doc = doc.replace("</style>",".p-button{cursor:pointer;color:#fff;border-radius: 0.5rem;padding:0.5rem 1rem; border-radius:0.5rem;background:#22c55e; border: 1px solid #22c55e;}.p-button:hover{border-radius:0.5rem;background:#22c55e;border: 1px solid #22c55e;} @media print{ .p-button{ visibility: hidden;}}</style>");
-    doc = doc.replace("<body>",`<button class="p-button" style="margin: 2rem" onclick="window.print()">IMPRIMIR</button>`)
-    doc = doc.replace("<style>",`<link rel="icon" type="image/x-icon" href="https://www.bling.com.br/images/favicons/logo-bling-dark-32.ico" /> <style>`)
-    return doc
+    let doc = document;
+    doc = doc.replace(
+      '<title>Bling - </title>',
+      '<title>Bling - DANFE</title>'
+    );
+    doc = doc.replace(
+      '</style>',
+      '.p-button{cursor:pointer;color:#fff;border-radius: 0.5rem;padding:0.5rem 1rem; border-radius:0.5rem;background:#22c55e; border: 1px solid #22c55e;}.p-button:hover{border-radius:0.5rem;background:#22c55e;border: 1px solid #22c55e;} @media print{ .p-button{ visibility: hidden;}}</style>'
+    );
+    doc = doc.replace(
+      '<body>',
+      `<button class="p-button" style="margin: 2rem" onclick="window.print()">IMPRIMIR</button>`
+    );
+    doc = doc.replace(
+      '<style>',
+      `<link rel="icon" type="image/x-icon" href="https://www.bling.com.br/images/favicons/logo-bling-dark-32.ico" /> <style>`
+    );
+    return doc;
   }
 
-
-  simplDanfe:string = ''
-  simplDanfeData:any = ''
-  getSvg(html:any){
+  simplDanfe: string = '';
+  simplDanfeData: any = '';
+  getSvg(html: any) {
     let startSvg = html.indexOf('<svg');
-    let endSvg = html.indexOf('</svg>') +'</svg>'.length;
+    let endSvg = html.indexOf('</svg>') + '</svg>'.length;
     let svg = html.substring(startSvg, endSvg);
-    return svg
+    return svg;
   }
 
   setTitle(html: string) {
-
     let startSvg = html.indexOf('<title');
-    let endSvg = html.indexOf('</title>') +'</title>'.length;
+    let endSvg = html.indexOf('</title>') + '</title>'.length;
     let svg = html.substring(startSvg, endSvg);
   }
 
-
   urlPdf: string = '';
   gerarEtqDanfe(pedidoId: number[], nfId: number) {
-    this.visualizarDialogPdf = false
+    this.visualizarDialogPdf = false;
     this.isLoading = true;
-    let nfData: any
+    let nfData: any;
     //Faz fluxo de obtenção da danfe simplificada
-    this.pedidoServ.getNF(nfId).pipe(
-    //Requisição de recuperação de informações da Nota
-      switchMap((nfData:any) => {
-        const xml = nfData.data.xml;
-        return this.pedidoServ.getDanfe(nfData.data.linkDanfe).pipe(
-      //Obtem a danfe para recolhimento de dados
-      switchMap((danfeData:any) => {
-        const htmlDanfe = danfeData;
-      //Obtem o xml da nota para recolhimento de dados
-        return this.pedidoServ.getXml(xml).pipe(
-      switchMap((xmlData:any) => {
-      //Tranformação do xml em JSON
-        let json = this.pedidoServ.parseXml(xmlData);
-      //Pega o svg do código de barras que tá no xml
-        let svg = this.getSvg(htmlDanfe);
-      //Extração de dados do xml / Disposição desses dados num html
-        return this.extractData(json,svg).pipe(
-      switchMap((data:any) => {
-        this.simplDanfeData = data;
-        //Retorna a danfe simplificada
-       return this.pedidoServ.gerarDanfeSimplificadoHtml(
-              data.nomeFantasia,
-              data.svgBarcode,
-              data.codigo,
-              data.protocolo,
-              data.tipo,
-              data.numero,
-              data.serie,
-              data.dataEmissao,
-              data.qtde,
-              data.doc,
-              data.destIE,
-              data.nome,
-              data.endereco,
-              data.observacao
-       ).pipe(
-       switchMap((simplDanfe:any) => {
-         this.simplDanfe = simplDanfe;
-         return this.logisticasService.getEtiquetaDeTransporte(pedidoId).pipe(
-        //Retorna os dados da etiqueta de transporte // Links
-        switchMap((res:any) => {
-            let etq = [];
-            let result:Observable<any>[] = [];
-            etq = res.data;
+    this.pedidoServ
+      .getNF(nfId)
+      .pipe(
+        //Requisição de recuperação de informações da Nota
+        switchMap((nfData: any) => {
+          const xml = nfData.data.xml;
+          return this.pedidoServ.getDanfe(nfData.data.linkDanfe).pipe(
+            //Obtem a danfe para recolhimento de dados
+            switchMap((danfeData: any) => {
+              const htmlDanfe = danfeData;
+              //Obtem o xml da nota para recolhimento de dados
+              return this.pedidoServ.getXml(xml).pipe(
+                switchMap((xmlData: any) => {
+                  //Tranformação do xml em JSON
+                  let json = this.pedidoServ.parseXml(xmlData);
+                  //Pega o svg do código de barras que tá no xml
+                  let svg = this.getSvg(htmlDanfe);
+                  //Extração de dados do xml / Disposição desses dados num html
+                  return this.extractData(json, svg).pipe(
+                    switchMap((data: any) => {
+                      this.simplDanfeData = data;
+                      //Retorna a danfe simplificada
+                      return this.pedidoServ
+                        .gerarDanfeSimplificadoHtml(
+                          data.nomeFantasia,
+                          data.svgBarcode,
+                          data.codigo,
+                          data.protocolo,
+                          data.tipo,
+                          data.numero,
+                          data.serie,
+                          data.dataEmissao,
+                          data.qtde,
+                          data.doc,
+                          data.destIE,
+                          data.nome,
+                          data.endereco,
+                          data.observacao
+                        )
+                        .pipe(
+                          switchMap((simplDanfe: any) => {
+                            this.simplDanfe = simplDanfe;
+                            return this.logisticasService
+                              .getEtiquetaDeTransporte(pedidoId)
+                              .pipe(
+                                //Retorna os dados da etiqueta de transporte // Links
+                                switchMap((res: any) => {
+                                  let etq = [];
+                                  let result: Observable<any>[] = [];
+                                  etq = res.data;
 
-            //Cria uma observable para cada link recuperado
-            //Levando em consideração que em alguns casos serão necessários várias etiquetas de trasporte.
-            result = etq.map((element: any) => {
-              return this.logisticasService.getBlob(  this.formatLink(element.link))
-            });
-            //Executa todas ao mesmo tempo usando forkjoin
-            return forkJoin(result)
-            }),
+                                  //Cria uma observable para cada link recuperado // Executa várias observables ao mesmo tempo
+                                  //Levando em consideração que em alguns casos serão necessários várias etiquetas de trasporte.
+                                  result = etq.map((element: any) => {
+                                    return this.logisticasService.getBlob(
+                                      this.formatLink(element.link)
+                                    );
+                                  });
+                                  //Executa todas ao mesmo tempo usando forkjoin
+                                  return forkJoin(result);
+                                }),
 
-            map(res => res)
-            )
-           })
-          )
+                                map((res) => res)
+                              );
+                          })
+                        );
+                    })
+                  );
+                })
+              );
+            })
+          );
+        }),
+        catchError((err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+          return of(null);
         })
       )
-    })
-  )
-})
-)
-}),
-      catchError((err: any) => {
+      .subscribe({
+        next: async (blob: any) => {
+          let pdf = await Utils.addImgeToPDF(this.simplDanfeData, blob[0]);
+          let url = URL.createObjectURL(pdf);
+          this.urlPdf = url;
 
-        this.notify.notify({
-          message: `Erro: ${this.pedidoServ.handleError(err)}`,
-          type: NotificationType.ERROR
-        })
-        return of(null)
-      })
-    ).subscribe({
-      next: async (blob: any) => {
-        let pdf = await Utils.addImgeToPDF(this.simplDanfeData,blob[0])
-        let url = URL.createObjectURL(pdf);
-        this.urlPdf = url;
-
-        this.visualizarDialogPdf = true;
-         this.isLoading = false;
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        this.notify.notify({
-          message: `Erro: ${err}`,
-          type: NotificationType.ERROR
-        })
-      },
-      complete:() => {
-        this.visualizarDialogPdf = true;
-        this.isLoading = false;
-
-      }
-    })
-
+          this.visualizarDialogPdf = true;
+          this.isLoading = false;
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          this.notify.notify({
+            message: `Erro: ${err}`,
+            type: NotificationType.ERROR,
+          });
+        },
+        complete: () => {
+          this.visualizarDialogPdf = true;
+          this.isLoading = false;
+        },
+      });
   }
 
   gerarNFE(danfeURL: string, xmlUrl: string) {
-
     this.pedidoServ.getDanfe(danfeURL).subscribe({
-      next:(res: string) => {
+      next: (res: string) => {
         this.getXML(xmlUrl, res);
       },
       error: (err: any) => {
@@ -833,24 +717,23 @@ export class ConferenciaComponent implements OnInit {
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
-        })
-      }
-    })
+        });
+      },
+    });
   }
   //Recupera o xml com os dados da nota e
-  getXML(urlXml:string, htmlDanfe?:any) {
+  getXML(urlXml: string, htmlDanfe?: any) {
     this.pedidoServ.getXml(urlXml).subscribe({
       next: (res: string) => {
+        //Tranformação do xml em JSON
+        let json: NFeXML = this.pedidoServ.parseXml(res);
 
-      //Tranformação do xml em JSON
-      let json:NFeXML = this.pedidoServ.parseXml(res);
+        //Extração do código de barras
+        let svg = this.getSvg(htmlDanfe);
 
-      //Extração do código de barras
-      let svg = this.getSvg(htmlDanfe);
-
-      //Junção dos dados
-      //Isso será executado no switchmap
-   /*   this.extractData(json,svg).subscribe(
+        //Junção dos dados
+        //Isso será executado no switchmap
+        /*   this.extractData(json,svg).subscribe(
         (data:any) => {
 
             this.pedidoServ.gerarDanfeSimplificado(
@@ -881,84 +764,112 @@ export class ConferenciaComponent implements OnInit {
           type: NotificationType.ERROR
         })
       }) */
-
       },
       error: (err: any) => {
         this.isLoading = false;
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
-        })
-      }
-    })
+        });
+      },
+    });
   }
 
-  extractData(dados:NFeXML, svg:string
-
-
-  ){
-
-
-    const data:any = {};
+  extractData(dados: NFeXML, svg: string) {
+    const data: any = {};
     let extractPromise = new Observable((subscriber) => {
       //Recuperação de nome fantasia
-      data.nomeFantasia = `${dados.NFe.infNFe.emit.xNome.text}\n${'CNPJ:'+this.pedidoServ.maskDoc(dados.NFe.infNFe.emit.CNPJ?.text,'pj')} IE:${dados.NFe.infNFe.emit.IE.text}\n${dados.NFe.infNFe.emit.enderEmit?.xLgr.text}, ${dados.NFe.infNFe.emit.enderEmit?.nro.text}, ${dados.NFe.infNFe.emit.enderEmit?.xCpl?.text}, ${dados.NFe.infNFe.emit.enderEmit?.xBairro.text}\n${dados.NFe.infNFe.emit.enderEmit?.xMun.text} - ${dados.NFe.infNFe.emit.enderEmit?.UF.text}`;
+      data.nomeFantasia = `${dados.NFe.infNFe.emit.xNome.text}\n${
+        'CNPJ:' +
+        this.pedidoServ.maskDoc(dados.NFe.infNFe.emit.CNPJ?.text, 'pj')
+      } IE:${dados.NFe.infNFe.emit.IE.text}\n${
+        dados.NFe.infNFe.emit.enderEmit?.xLgr.text
+      }, ${dados.NFe.infNFe.emit.enderEmit?.nro.text}, ${
+        dados.NFe.infNFe.emit.enderEmit?.xCpl?.text
+      }, ${dados.NFe.infNFe.emit.enderEmit?.xBairro.text}\n${
+        dados.NFe.infNFe.emit.enderEmit?.xMun.text
+      } - ${dados.NFe.infNFe.emit.enderEmit?.UF.text}`;
 
       //Dados de código - Svg
-      data.svgBarcode = svg
+      data.svgBarcode = svg;
 
       //Dados de código - Código
       data.codigo = dados.protNFe.infProt.chNFe.text;
 
       //Dados de protocolo
       //Separação dia e hora
-      let dia =  dados.protNFe.infProt.dhRecbto.text.split('T')[0].split('-').reverse().join('/');
-      let hr = dados.protNFe.infProt.dhRecbto.text.split('T')[1].substring(0,8);
+      let dia = dados.protNFe.infProt.dhRecbto.text
+        .split('T')[0]
+        .split('-')
+        .reverse()
+        .join('/');
+      let hr = dados.protNFe.infProt.dhRecbto.text
+        .split('T')[1]
+        .substring(0, 8);
 
       //Nº de protocolo da danfe
       data.protocolo = `${dados.protNFe.infProt.nProt.text} ${dia} ${hr}`;
 
       //Data de emissão
-      data.dataEmissao = `${dia}`
+      data.dataEmissao = `${dia}`;
 
       //Tipo da nota fisxcall
-      data.tipo = `${dados.NFe.infNFe.ide.tpNF.text == '1' ? '1 - Saída' : '0 - Entrada' }`
+      data.tipo = `${
+        dados.NFe.infNFe.ide.tpNF.text == '1' ? '1 - Saída' : '0 - Entrada'
+      }`;
 
       //Nº da nota fixcal
-      data.numero = `${dados.NFe.infNFe.ide.nNF.text}`
+      data.numero = `${dados.NFe.infNFe.ide.nNF.text}`;
 
       //Serie
-      data.serie = `${dados.NFe.infNFe.ide.serie.text}`
+      data.serie = `${dados.NFe.infNFe.ide.serie.text}`;
 
       //Numero do documento do caboclo
-      data.doc = `${dados.NFe.infNFe.dest.CNPJ?.text ? this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CNPJ?.text,'pj')  : this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CPF?.text,'pf')}`
+      data.doc = `${
+        dados.NFe.infNFe.dest.CNPJ?.text
+          ? this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CNPJ?.text, 'pj')
+          : this.pedidoServ.maskDoc(dados.NFe.infNFe.dest.CPF?.text, 'pf')
+      }`;
 
       //IE do documento do caboclo
-      data.destIE = `${dados.NFe.infNFe.dest.CNPJ?.text ? 'IE:' + dados.NFe.infNFe.dest.IE?.text : '' }`
+      data.destIE = `${
+        dados.NFe.infNFe.dest.CNPJ?.text
+          ? 'IE:' + dados.NFe.infNFe.dest.IE?.text
+          : ''
+      }`;
 
       //Nome do documento do caboclo
-      data.nome = `${dados.NFe.infNFe.dest.xNome.text }`
+      data.nome = `${dados.NFe.infNFe.dest.xNome.text}`;
 
       //Quantidade de itens
-      data.qtde = `${dados.NFe.infNFe.det.length ? dados.NFe.infNFe.det.length : 1}`
+      data.qtde = `${
+        dados.NFe.infNFe.det.length ? dados.NFe.infNFe.det.length : 1
+      }`;
 
       //Endereço
-      data.endereco = `${dados.NFe.infNFe.dest.enderDest?.xLgr.text}, ${dados.NFe.infNFe.dest.enderDest?.nro.text} ${dados.NFe.infNFe.dest.enderDest?.xCpl?.text ? ', '+ dados.NFe.infNFe.dest.enderDest?.xCpl?.text : ''} , ${dados.NFe.infNFe.dest.enderDest?.xBairro.text} ${dados.NFe.infNFe.dest.enderDest?.xMun.text} - ${dados.NFe.infNFe.dest.enderDest?.UF.text}`
+      data.endereco = `${dados.NFe.infNFe.dest.enderDest?.xLgr.text}, ${
+        dados.NFe.infNFe.dest.enderDest?.nro.text
+      } ${
+        dados.NFe.infNFe.dest.enderDest?.xCpl?.text
+          ? ', ' + dados.NFe.infNFe.dest.enderDest?.xCpl?.text
+          : ''
+      } , ${dados.NFe.infNFe.dest.enderDest?.xBairro.text} ${
+        dados.NFe.infNFe.dest.enderDest?.xMun.text
+      } - ${dados.NFe.infNFe.dest.enderDest?.UF.text}`;
 
-      data.observacao = `${dados.NFe.infNFe.infAdic.infCpl.text}`
+      data.observacao = `${dados.NFe.infNFe.infAdic.infCpl.text}`;
 
-      subscriber.next(data)
-    })
+      subscriber.next(data);
+    });
 
     return extractPromise;
   }
 
-
   getOrderTest(id: number) {
-    this.isLoading = true
+    this.isLoading = true;
     this.pedidoServ.getPedidosDetail(id).subscribe({
       next: (res: any) => {
-        let itens:Objeto[] = [];
+        let itens: Objeto[] = [];
         itens.push(res.data);
         this.dadosFilter.push(...itens);
       },
@@ -967,13 +878,87 @@ export class ConferenciaComponent implements OnInit {
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
-        })
-      }
-    })
+        });
+      },
+    });
   }
-  searchOnEnter(e:KeyboardEvent | Date){
-    if(e instanceof KeyboardEvent && e.code == "Enter" || e instanceof Date){
-       this.buscarItemLista()
+  searchOnEnter(e: KeyboardEvent | Date) {
+    if (
+      (e instanceof KeyboardEvent && e.code == 'Enter') ||
+      e instanceof Date
+    ) {
+      this.buscarItemLista();
     }
-   }
+  }
+
+  detalhes: any[] = [];
+
+  getProductDetail() {
+    this.isLoading = true;
+    //Retorna a lista de ids dos produtos
+    let iDitens = this.pedido.itens.map((item: any) => item.produto.id);
+
+    //Uma observable por id
+    let obs = iDitens.map((element: any) =>
+      this.pedidoServ.getProductById(element)
+    );
+
+    //Se for duas ou menos itens na lista - Manda tudo de uma vez !
+
+    if (obs.length <= 3) {
+      //Busca todas de uma vez
+      forkJoin(obs).subscribe({
+        next: (res: any) => {
+          console.log(res);
+
+          if (res) {
+            res.forEach((prd: any) => {
+              this.detalhes.push(prd.data);
+              this.getPhotos(prd.data);
+            });
+          }
+        },
+        error: (err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+          this.isLoading = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
+      //Se for um bocado, vai com calma e vai mandando na maciota
+    } else {
+      from(obs)
+        //Aqui ele só dale uma esperada pra não exceder o número de requisições por segundo limite dos cara lá
+        //Concat map faz uma requsição por vez, delayWenth faz um delay para cada requisição
+        .pipe(
+          concatMap((prdObs: any) => prdObs.pipe(delayWhen((dl: any) => timer(1000))))
+        ).subscribe({
+          next: (prd: any) => {
+            this.detalhes.push(prd.data);
+            this.getPhotos(prd.data);
+            console.log(prd);
+          },
+          error: (err: any) => {
+            this.notify.notify({
+              message: `Erro: ${this.pedidoServ.handleError(err)}`,
+              type: NotificationType.ERROR,
+            });
+            this.isLoading = false;
+          },
+        });
+    }
+  }
+
+  getPhotos(item: any) {
+    this.pedido.itens.forEach((element: any) => {
+      if (element.produto.id == item.id) {
+        console.log(item);
+        element.img = item.midia.imagens.externas[0].link;
+      }
+    });
+  }
 }

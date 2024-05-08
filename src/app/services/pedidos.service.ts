@@ -10,7 +10,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Config } from './config';
 import { TokenService } from './token.service';
 import { BuscaParams } from '../shared/params';
-import { Observable } from 'rxjs';
+import { Observable,interval } from 'rxjs';
 
 interface JsonElement {
   [key: string]: any;
@@ -73,7 +73,6 @@ export class PedidosService {
       },
       error: (err) => {
         //Por uma notificação ou algo do tipo aqui.
-        console.log(err);
         this.tokenService.limparLocalStorage();
         this.router.navigate(['/']);
       },
@@ -84,9 +83,7 @@ export class PedidosService {
     const token: any = this.tokenService.getToken();
 
     let urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}&limite=${params?.pagination?.limit}&idContato=${params.idContato}&numero=${params.numero}&dataInicial=${params?.period?.start}&dataFinal=${params?.period?.end}&idsSituacoes=${params?.situations}`;
-    params.idLoja != null
-      ? (urlToken += `&numerosLojas=${params.idLoja}`)
-      : null;
+    params.idLoja != null ? (urlToken += `&numerosLojas=${params.idLoja}`) : null;
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     });
@@ -144,6 +141,7 @@ export class PedidosService {
   handleError(error: any) {
     let erro = error
 
+
     if(error.error.error){
       let titulo = error.error.error.description;
       let fields = error.error.error.fields
@@ -163,6 +161,8 @@ export class PedidosService {
       this.router.navigate(['/']);
     }
     }
+
+
 
 
     return erro
@@ -412,6 +412,14 @@ export class PedidosService {
   }
 
 
+  getProductById(id:number){
+    const token: any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get<any>(`/Api/v3/produtos/${id}`, {headers: header})
+  }
 
 
 }// <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vedd3670a3b1c4e178fdfb0cc912d969e1713874337387" integrity="sha512-EzCudv2gYygrCcVhu65FkAxclf3mYM6BCwiGUm6BEuLzSb5ulVhgokzCZED7yMIkzYVg65mxfIBNdNra5ZFNyQ==" data-cf-beacon='{"rayId":"87d21feacc506f86","version":"2024.4.1","token":"182ecdcfb8194b148324a79d58192b9b"}' crossorigin="anonymous"></script>

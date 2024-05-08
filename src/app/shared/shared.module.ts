@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-
+import { CheckboxModule } from 'primeng/checkbox';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -121,7 +121,8 @@ import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
     ToolbarModule,
     MegaMenuModule,
     TooltipModule,
-    CdTimerModule
+    CdTimerModule,
+    CheckboxModule
   ],
 
   exports: [
@@ -180,7 +181,8 @@ import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
     NotificationComponent,
     LoadingComponent,
     CdTimerModule,
-    PdfViewerComponent
+    PdfViewerComponent,
+    CheckboxModule
   ],
   providers: [
     MessageService,

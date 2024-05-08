@@ -8,7 +8,7 @@ import {
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as JsBarcode from 'jsbarcode';
-import { interval } from 'rxjs';
+import { catchError, forkJoin, interval, map, of, switchMap, Observable } from 'rxjs';
 import Utils from 'src/app/services/Utils';
 import { situacoes } from 'src/app/services/itens';
 import { LogisticasService } from 'src/app/services/logisitica.service';
@@ -18,6 +18,8 @@ import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
+import { logistic,service } from 'src/app/services/logistcMock';
+import { templatebarcode } from 'src/app/services/barcode.config';
 export interface Contato {
   id: number;
   nome: string;
@@ -61,17 +63,13 @@ export class SeparacaoComponent implements OnInit {
   options: any;
   pedido: any;
   situacoes: any[] = situacoes;
-  //Elementos de tela
   expandedRows: { [key: string]: boolean } = {};
-
   isLoading: boolean = false;
-
   visualizarDialog = false;
   first = 0;
   rows = 10;
   hoje = new Date();
   rangeDates: any;
-
   dataTempTable: any[] = [];
   dataTempChart: any[] = [];
   @ViewChildren('barcodeElement') barcodeElements!: QueryList<
@@ -81,6 +79,9 @@ export class SeparacaoComponent implements OnInit {
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
   @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
   @ViewChildren('qtde') qtde!: QueryList<ElementRef<any>>;
+
+  logisticas = logistic
+  servico = service
 
   searchOnEnter(e:KeyboardEvent | Date){
    if(e instanceof KeyboardEvent && e.code == "Enter" || e instanceof Date){
@@ -102,8 +103,28 @@ export class SeparacaoComponent implements OnInit {
       numPedidoLojaVirtual: new FormControl(),
       numNotaFiscal: new FormControl(),
       data: new FormControl(),
+
     });
   }
+
+
+  etqEmBrancoChk: boolean = false
+
+  ngOnInit(): void {
+    //Inicializa os parâmetros de busca
+    this.getInitialDateRange();
+    let paramsChat = this.fillParamsFilter([
+      situacoes[9].id,
+      situacoes[8].id,
+      situacoes[7].id,
+      situacoes[10].id,
+    ]);
+    let paramsTable = this.fillParamsFilter([situacoes[9].id, situacoes[8].id]);
+    this.getPedidos(paramsTable, 'table');
+    this.getPedidos(paramsChat, 'chart');
+    this.createChart();
+  }
+
 
   /* Barcode */
   generateBarcode(): Promise<any> {
@@ -158,25 +179,8 @@ export class SeparacaoComponent implements OnInit {
     return promise;
   }
 
-
-
-  ngOnInit(): void {
-    //Inicializa os parâmetros de busca
-    this.getInitialDateRange();
-    this.getLogisticas()
-    let paramsChat = this.fillParamsFilter([
-      situacoes[9].id,
-      situacoes[8].id,
-      situacoes[7].id,
-      situacoes[10].id,
-    ]);
-    let paramsTable = this.fillParamsFilter([situacoes[9].id, situacoes[8].id]);
-    this.getPedidos(paramsTable, 'table');
-    this.getPedidos(paramsChat, 'chart');
-    this.createChart();
-  }
-
   printAll() {
+
     //Abre os campos
     this.toggleAllRows();
     // Gera os códigos de barra | Aguarda a promisse ser resolvida para imprimir o código de barras
@@ -193,71 +197,10 @@ export class SeparacaoComponent implements OnInit {
       const windowPrint = window.open(
         '',
         '_blank',
-        'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+        'left=150,top=100,width=600,height=800,toolbar=0,scrollbars=0,status=0'
       );
-      windowPrint!.document.write(`<html>
-      <header>
-        <title>Impressão de Etiquetas</title>
-        <style>
-        .wrapper-40x25 {
-          width: 40mm;
-          height: 23mm;
-
-          padding: 0mm 1.5mm;
-          background-color: #fff;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-      .barcode-holder {
-        text-align: center;
-        vertical-align: middle;
-        padding-top: 0.5mm;
-        height: 30px;
-        margin-left: 5px;
-      }
-
-      .titleSKU {
-        font-size: 10px;
-        font-weight: 700;
-        text-align: left;
-        max-height: 6mm;
-        margin-left: 10px;
-      }
-
-      .barcode-holder {
-        text-align: center;
-        vertical-align: middle;
-        padding-top: 0.5mm;
-        height: 30px;
-        margin-left: 5px;
-      }
-
-      .footer {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        margin-left: 10px;
-        font-weight: 700;
-        font-size: 13px;
-      }
-
-      body{
-        font-family: 'Inter var', sans-serif;
-      }
-
-
-
-        .spacer {
-          margin: 0;
-          page-break-after: always;
-        }
-        </style>
-      </header>
-      <body>${content}</body>
-      </html>`);
+      let imprimeBranco = this.etqEmBrancoChk ? 2 : ''
+      windowPrint!.document.write(templatebarcode(content,imprimeBranco));
       windowPrint!.document.close();
       windowPrint!.focus();
 
@@ -274,71 +217,14 @@ export class SeparacaoComponent implements OnInit {
     const windowPrint = window.open(
       '',
       '_blank',
-      'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0'
+      'left=150,top=100,width=600,height=800,toolbar=0,scrollbars=0,status=0'
     );
-    windowPrint!.document.write(`<html>
-    <header>
-      <title>Impressão de Etiquetas</title>
-      <style>
-      .wrapper-40x25 {
-        width: 40mm;
-        height: 23mm;
-
-        padding: 0mm 1.5mm;
-        background-color: #fff;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-    .barcode-holder {
-      text-align: center;
-      vertical-align: middle;
-      padding-top: 0.5mm;
-      height: 30px;
-      margin-left: 5px;
-    }
-
-    .titleSKU {
-      font-size: 10px;
-      font-weight: 700;
-      text-align: left;
-      max-height: 6mm;
-      margin-left: 10px;
-    }
-
-    .barcode-holder {
-      text-align: center;
-      vertical-align: middle;
-      padding-top: 0.5mm;
-      height: 30px;
-      margin-left: 5px;
-    }
-
-    .footer {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      margin-left: 10px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    body{
-      font-family: 'Inter var', sans-serif;
-    }
-      </style>
-    </header>
-    <body>
-
-
-    ${printContents}</body>
-    </html>`);
+    let imprimeBranco = this.etqEmBrancoChk ? 2 : ''
+    windowPrint!.document.write(templatebarcode(printContents,imprimeBranco));
     windowPrint!.document.close();
     windowPrint!.focus();
 
-    setTimeout(() => {
+   setTimeout(() => {
       windowPrint!.print();
       windowPrint!.close();
     }, 250);
@@ -430,7 +316,7 @@ export class SeparacaoComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
-         /*  this.getDataDetail(this.dadosFilter) */
+          this.dadosFilter.length == 1 ? this.getDetalhePedido(this.dadosFilter[0]) : '';
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -451,29 +337,60 @@ export class SeparacaoComponent implements OnInit {
     });
   }
 
+  getOrderTest(id: number) {
+    this.isLoading = true
+    this.pedidoServ.getPedidosDetail(id).subscribe({
+      next: (res: any) => {
+        let itens:Objeto[] = [];
+        itens.push(res.data);
+        this.dadosFilter.push(...itens);
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        })
+      }
+    })
+  }
+
   reloadTable() {
     this.dadosFilter = [];
     let params = this.fillParamsFilter([situacoes[9].id, situacoes[8].id]);
     this.getPedidos(params, 'table');
   }
 
-  /**
-   * Retrieves the details of a specific pedido.
-   *
-   * @param {any} item - The item for which to retrieve the details.
-   * @return {void} This function does not return anything.
-   */
   getDetalhePedido(item?: any) {
+    this.isLoading = true;
     this.visualizarDialog = false;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
+        this.pedido.itens.forEach((i:any) => i.img = '')
         this.visualizarDialog = true;
         this.generateBarcode().then();
+        this.getProductDetail()
+
+
+        console.log();
+
         //Id do pedido | Id da situação - Em separação
         if (item.situacao.id != situacoes[9].id) {
           this.putSituation(item.id, situacoes[9].id);
           this.reloadTable();
+        }else{
+          //Caso o pedido já esteja em separação ->
+          //  -> Recarrega a tabela,
+          //  -> fecha o modal
+          //  -> manda uma notificação.
+/*
+          this.visualizarDialog = false
+          this.reloadTable();
+          this.notify.notify({
+            message: `Atenção: já este pedido está em separação !`,
+            type: NotificationType.ERROR,
+          }) */
         }
 
         //Ordenação dos pedidos em ordem alfabética por SKU
@@ -485,8 +402,11 @@ export class SeparacaoComponent implements OnInit {
           message: this.pedidoServ.handleError(err),
           type: NotificationType.ERROR,
         });
+        this.isLoading = false;
       },
-      complete: () => {},
+      complete: () => {
+        this.isLoading = false;
+      },
     });
   }
 
@@ -523,6 +443,52 @@ export class SeparacaoComponent implements OnInit {
       },
     };
   }
+  detalhes:any = []
+  getProductDetail(){
+    this.isLoading = true
+    //Retorna a lista de ids dos produtos
+    let iDitens = this.pedido.itens.map((item: any) =>  item.produto.id);
+    //Uma observable por id
+    let obs = iDitens.map((element:any) => this.pedidoServ.getProductById(element));
+    //Busca todas de uma vez
+    forkJoin(obs).subscribe({
+      next: (res: any) => {
+        console.log(res);
+
+        if(res){
+          res.forEach((prd:any) => {
+            this.detalhes.push(prd.data);
+            this.getPhotos(prd.data)
+          });
+
+        }
+
+      },
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
+        this.isLoading = false
+      },
+      complete: () => {
+        this.isLoading = false
+      },
+    })
+}
+
+    getPhotos(item: any){
+      this.pedido.itens.forEach((element:any ) => {
+            if(element.produto.id == item.id ){
+
+
+              element.img = item.midia.imagens.externas[0].link
+            }
+          }
+        );
+      }
+
+
 
   getValuesGrafico(dados: any, situacoes: any) {
     const counts: any = {};
@@ -584,8 +550,15 @@ export class SeparacaoComponent implements OnInit {
   }
 
   buscarItemLista() {
-    this.isLoading = true;
-    this.reloadTable();
+    if (this.form.valid) {
+      this.isLoading = true;
+      this.reloadTable();
+    } else {
+      this.notify.notify({
+        message: 'Preencha data inicial e final !',
+        type: NotificationType.WARN,
+      });
+    }
   }
 
   convertDate(dateRange: Date[]) {
@@ -630,12 +603,18 @@ export class SeparacaoComponent implements OnInit {
     this.form.controls['data'].setValue(this.getDateRange(30));
   }
 
-  logisticas:any = []
+ /*  logisticas:any = [] */
   logisticaSelected: any  = []
 
   getLogisticas(){
     this.isLoading = true
-    this.logisticasService.getLogisticas().subscribe({
+    this.logisticasService.getLogisticas().pipe(
+      //Obtem os serviços logisticos da empresa
+      switchMap((res:any) => {
+      this.logisticas = res.data
+      return this.logisticasService.getLogisticasServicos()
+      })
+    ).subscribe({
       next: (res: any) => {
         this.logisticas = res.data;
       },
@@ -652,33 +631,20 @@ export class SeparacaoComponent implements OnInit {
     })
   }
 
-  servicos:any = []
 
-  getIdLog(id:any){
-    this.logisticasService.getLogisticasServico(id).subscribe({
-      next: (res: any) => {
-        this.servicos = res.data;
-      },
-      error: (err: any) => {
-        this.notify.notify({
-          message: `Erro: ${this.pedidoServ.handleError(err)}`,
-          type: NotificationType.ERROR,
-        });
-      },complete: () => {
-
-      }
-    }
-  )
-
-}
 
   ordersDetail:any = [];
   nfs:any = [];
   nfSelected: any  = []
+  isLoadingLogistica = false
   getDataDetail(dadosFilter:any[]){
-    let intervalo = interval(1000);
+    this.isLoadingLogistica = true
+    const TIMEOUT = 2000
+    let intervalo = interval(TIMEOUT);
     let nr = 0;
     let id = 0;
+    console.log("COmeçamos denovo");
+
     let subs = intervalo.subscribe((n) => {
       //Caso ainda tenham registros no array
       if(dadosFilter[nr]){
@@ -686,34 +652,37 @@ export class SeparacaoComponent implements OnInit {
         id = dadosFilter[nr].id;
       //Aumenta o contador
         nr += 1;
+
         this.pedidoServ.getPedidosDetail(id).subscribe({
           next: (res: any) => {
-            let i = res.data
+            let i = res.data;
             this.ordersDetail.push(res.data);
-            this.nfs.push({value:`${i.notaFiscal.id}`})
-
-
-
+            Object.assign(this.dadosFilter[nr - 1], i);
           },
           error: (err: any) => {
             this.notify.notify({
               message: `Erro: ${this.pedidoServ.handleError(err)}`,
               type: NotificationType.ERROR,
-              });
-            },
-            complete: () => {
-
+            });
+          },
+          complete: () => {
+            console.log('complete');
+            if (nr + 1 == this.ordersDetail.length) {
+              console.log(this.dadosFilter);
+              this.isLoadingLogistica = false;
+              subs.unsubscribe();
             }
-          }
-        )
-        if(nr == this.ordersDetail.length){
+          },
+        });
 
-            subs.unsubscribe();
-
-          }
         }
       }
     );
+
+
+    setTimeout(() => {
+      this.isLoadingLogistica = false;
+    }, TIMEOUT*this.dadosFilter.length);
   }
 
   limparFiltro(){
@@ -722,10 +691,41 @@ export class SeparacaoComponent implements OnInit {
   }
 
   filter(){
-    this.ordersDetail = this.ordersDetail.filter( (i:any) =>
-      i.notaFiscal.id.toString().includes(this.nfSelected.value) &&
-      i.logistica.id == this.logisticaSelected.value);
+    let log = this.findLogistica(this.logisticaSelected.descricao)
+    let serv = this.findService(log?.id)
+    this.dadosFilter = this.dadosFilter.filter( (i:any) =>
+      i.transporte.volumes &&
+    i.transporte.volumes != null &&
+    i.transporte.volumes != undefined &&
+    i.transporte.volumes > 0  ? this.findServiceByName(i.transporte.volumes[0].servico,serv) > 0  : false  )
+
+  console.log(this.dadosFilter);
+
   }
+
+dadosFilterArr = []
+
+
+  findLogistica(str:string){
+   return logistic.find((i:any) => i.descricao == str )
+  }
+
+  findService(idLogistico:any){
+    console.log(idLogistico);
+
+    return service.filter((i:any) => i.logistica.id == idLogistico )
+  }
+
+  findServiceByName(str:string,services:any[] ){
+    return services.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) ).length
+  }
+
+
+
+
+
+
+
 
 }
 

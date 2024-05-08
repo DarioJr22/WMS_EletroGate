@@ -31,7 +31,6 @@ export class AuthComponent implements OnInit {
   async fetchData(): Promise<void> {
     try {
       const token = await this.tokenService.getToken();
-      console.log('Token:', token);
       if (token) {
         this.router.navigate(['/opcoes']);
       } else {

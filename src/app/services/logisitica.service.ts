@@ -2,9 +2,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { TokenService } from './token.service';
-import {map} from 'rxjs/operators'
+import {catchError, map} from 'rxjs/operators'
 import { NotificationService } from '../shared/notification/notification.service';
 import { NotificationType } from './notification';
+import { PedidosService } from './pedidos.service';
+import { throwError } from 'rxjs';
 
 //Sem o code
 
@@ -16,7 +18,8 @@ export class LogisticasService {
     private http: HttpClient,
     private tokenService: TokenService,
     private router: Router,
-    private notify:NotificationService
+    private notify:NotificationService,
+    private pedidoServ:PedidosService
   ) {}
 
   getLogisticaRemessa(id: any) {
@@ -86,14 +89,17 @@ export class LogisticasService {
     return this.http.get('/Api/v3/logisticas?situacao=H', { headers: header })
   }
 
-  getLogisticasServico(id:any){
-    const token: any = this.tokenService.getToken();
+  getLogisticasServicos(){
+    const token: any =  this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
     })
 
-    return this.http.get('/Api/v3/logisticas/'+id, { headers: header })
+    return this.http.get('/Api/v3/logisticas/servicos ', { headers: header })
   }
+
+
+
 
 
 
