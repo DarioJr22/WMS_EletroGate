@@ -22,14 +22,16 @@ import * as JsBarcode from 'jsbarcode';
 import {NFeXML } from '../../services/NFs'
 import Utils from 'src/app/services/Utils';
 import { templatebarcode } from 'src/app/services/barcode.config';
+import { logistic, service } from 'src/app/services/logistcMock';
 
 @Component({
   selector: 'app-conferencia',
   templateUrl: './conferencia.component.html',
   styleUrls: ['./conferencia.component.scss'],
 })
+
+
 export class ConferenciaComponent implements OnInit {
-  //Entidades
   dadosFilter: Objeto[] = [];
   dados: Objeto[] = [];
   form: FormGroup;
@@ -37,25 +39,27 @@ export class ConferenciaComponent implements OnInit {
   options: any;
   pedido: any;
   situacoes: any[] = situacoes;
-  //Elementos de tela
   expandedRows: { [key: string]: boolean } = {};
-
   isLoading: boolean = false;
-
+  logisticas = logistic
+  servico = service
   visualizarDialog = false;
   visualizarDialogPdf = false;
   first = 0;
   rows = 10;
   hoje = new Date();
   rangeDates: any;
-  @ViewChildren('barcodeElement') barcodeElements!: QueryList<
-    ElementRef<HTMLImageElement>
-  >;
+  detalhes: any[] = [];
+  isLoadingProduct: boolean = false;
+  isLoadingLogistica: boolean = false;
+  filterActive:boolean = false
+  dadosFilterArr:any[] = []
+
+  @ViewChildren('barcodeElement') barcodeElements!: QueryList<ElementRef<HTMLImageElement> >;
   @ViewChildren('name') names!: QueryList<ElementRef<any>>;
   @ViewChildren('sku') skus!: QueryList<ElementRef<any>>;
   @ViewChildren('elementPrint') print!: QueryList<ElementRef<any>>;
   @ViewChildren('qtde') qtde!: QueryList<ElementRef<any>>;
-
   constructor(
     // private cookie: CookieService,
     private userService: UserService,
@@ -232,9 +236,6 @@ export class ConferenciaComponent implements OnInit {
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         });
-
-        /*    this.tokenService.limparLocalStorage();
-         this.router.navigate(['/']); */
       },
     });
   }
@@ -294,7 +295,10 @@ export class ConferenciaComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
-          this.dadosFilter.length == 1 ? this.getDetalhePedido(this.dadosFilter[0]) : '';
+          this.dadosFilterArr = this.dataTempTable;
+          this.dadosFilter.length == 1  ? this.getDetalhePedido(this.dadosFilter[0]) : '';
+        /*   this.getDataDetail(this.dadosFilter); */
+          /* this.getOrderTest(20257925227) */
 
 
           this.dataTempTable = [];
@@ -324,23 +328,16 @@ export class ConferenciaComponent implements OnInit {
     this.getPedidos(params, 'table');
   }
 
-  /**
-   * Retrieves the details of a specific pedido.
-   *
-   * @param {any} item - The item for which to retrieve the details.
-   * @return {void} This function does not return anything.
-   */
   getDetalhePedido(item?: any) {
-    this.visualizarDialog = false;
+    this.visualizarDialog == false ? this.visualizarDialog == false : this.visualizarDialog = true;
     this.pedidoServ.getPedidosDetail(item.id).subscribe({
       next: (res: any) => {
         this.pedido = res.data;
         this.pedido.itens.forEach((i: any) => (i.img = ''));
         this.visualizarDialog = true;
         this.generateBarcode().then();
-        this.reloadTable();
+        this.dadosFilter.length > 1 ? this.reloadTable() : '';
         this.getProductDetail();
-
         this.pedido.itens.sort((a: any, b: any) =>
           a.codigo < b.codigo ? -1 : 1
         );
@@ -667,15 +664,15 @@ export class ConferenciaComponent implements OnInit {
 
                                 map((res) => res)
                               );
-                          })
-                        );
+                            })
+                          );
+                        })
+                      );
                     })
                   );
                 })
               );
-            })
-          );
-        }),
+            }),
         catchError((err: any) => {
           this.notify.notify({
             message: `Erro: ${this.pedidoServ.handleError(err)}`,
@@ -891,10 +888,9 @@ export class ConferenciaComponent implements OnInit {
     }
   }
 
-  detalhes: any[] = [];
 
   getProductDetail() {
-    this.isLoading = true;
+    this.isLoadingProduct = true;
     //Retorna a lista de ids dos produtos
     let iDitens = this.pedido.itens.map((item: any) => item.produto.id);
 
@@ -905,52 +901,30 @@ export class ConferenciaComponent implements OnInit {
 
     //Se for duas ou menos itens na lista - Manda tudo de uma vez !
 
-    if (obs.length <= 3) {
-      //Busca todas de uma vez
-      forkJoin(obs).subscribe({
-        next: (res: any) => {
-          console.log(res);
+    //Busca todas de uma vez
+    forkJoin(obs).subscribe({
+      next: (res: any) => {
+        console.log(res);
 
-          if (res) {
-            res.forEach((prd: any) => {
-              this.detalhes.push(prd.data);
-              this.getPhotos(prd.data);
-            });
-          }
-        },
-        error: (err: any) => {
-          this.notify.notify({
-            message: `Erro: ${this.pedidoServ.handleError(err)}`,
-            type: NotificationType.ERROR,
-          });
-          this.isLoading = false;
-        },
-        complete: () => {
-          this.isLoading = false;
-        },
-      });
-      //Se for um bocado, vai com calma e vai mandando na maciota
-    } else {
-      from(obs)
-        //Aqui ele só dale uma esperada pra não exceder o número de requisições por segundo limite dos cara lá
-        //Concat map faz uma requsição por vez, delayWenth faz um delay para cada requisição
-        .pipe(
-          concatMap((prdObs: any) => prdObs.pipe(delayWhen((dl: any) => timer(1000))))
-        ).subscribe({
-          next: (prd: any) => {
+        if (res) {
+          res.forEach((prd: any) => {
             this.detalhes.push(prd.data);
             this.getPhotos(prd.data);
-            console.log(prd);
-          },
-          error: (err: any) => {
-            this.notify.notify({
-              message: `Erro: ${this.pedidoServ.handleError(err)}`,
-              type: NotificationType.ERROR,
-            });
-            this.isLoading = false;
-          },
+          });
+        }
+      },
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
         });
-    }
+        this.isLoadingProduct = false;
+      },
+      complete: () => {
+        this.isLoadingProduct = false;
+      },
+    });
+
   }
 
   getPhotos(item: any) {
@@ -958,7 +932,72 @@ export class ConferenciaComponent implements OnInit {
       if (element.produto.id == item.id) {
         console.log(item);
         element.img = item.midia.imagens.externas[0].link;
+        element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
+
       }
     });
+  }
+
+
+  logisticaSelected: any  = []
+
+  getDataDetail(dadosFilter:any[]){
+    this.isLoadingLogistica = true
+
+    this.dadosFilter.forEach((item: any,index) => {
+      let id = item.id
+      this.pedidoServ.getPedidosDetail(id).subscribe({
+        next: (res: any) => {
+          let i = res.data;
+          Object.assign(this.dadosFilter[index], i);
+        },
+        error: (err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+          this.isLoadingLogistica = false;
+        },
+        complete: () => {
+          console.log('complete');
+          console.log(this.dadosFilter);
+            this.isLoadingLogistica = false;
+        },
+      });
+    })
+  }
+
+  limparFiltro(){
+    this.logisticaSelected = {descricao:''}
+    this.dadosFilterArr = this.dadosFilter
+  }
+
+  filter(){
+    let log = this.findLogistica(this.logisticaSelected.descricao)
+    let serv = this.findService(log?.id)
+    this.dadosFilterArr = this.dadosFilter.filter( (i:any) =>
+    {
+          if (i.transporte.volumes && i.transporte.volumes.length > 0) {
+            return this.findServiceByName(i.transporte.volumes[0].servico, serv) > 0;
+        } else {
+            return false;
+        }
+      }
+    )
+  }
+
+
+
+
+  findLogistica(str:string){
+   return logistic.find((i:any) => i.descricao == str )
+  }
+
+  findService(idLogistico:any){
+    return service.filter((i:any) => i.logistica.id == idLogistico )
+  }
+
+  findServiceByName(str:string,services:any[] ){
+    return services.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) ).length
   }
 }

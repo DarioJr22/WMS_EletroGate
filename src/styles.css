@@ -120,5 +120,24 @@ label {
 }
 
 
+.button-filter{
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  background-color: #22c55e;
+  color: #fff;
+}
+
+
+.filter{
+  height: 0rem;
+  transition: 0.5s ease ;
+}
+
+.filter-active{
+  height: 10rem;
+  transition: 0.5s ease ;
+}
+
+
 
 

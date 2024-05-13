@@ -125,8 +125,46 @@
     </div>
   </div>
   <div class="card">
+   <!--  <span style="width: 100%; display: flex;justify-content: end; margin-bottom: 1rem;">
+      <p-button pTooltip="Filtro" tooltipPosition="bottom" (click)="filterActive = !filterActive"  severity="success" icon="pi pi-filter"></p-button>
+    </span>
+
+
+    <div class="filter" [ngClass]="{ 'filter-active':filterActive }" >
+      <h1>Filtro</h1>
+      <div class="flex m-3 justify-content-center">
+        <div class="col-5">
+          <div style="width: 100%;" class="flex flex-column gap-2">
+              <label  for="username">Logistica</label>
+              <p-dropdown
+              name="username"
+              [disabled]="isLoadingLogistica"
+              [options]="logisticas"
+              [(ngModel)]="logisticaSelected"
+              (ngModelChange)="filter()"
+              optionLabel="descricao"
+              placeholder="Seleciona a opção logistica">
+            </p-dropdown>
+          </div>
+      </div>
+      <div style="display: flex;
+      align-items: end;
+      justify-content: start;" class="col-1">
+        <p-button
+          (click)="limparFiltro()"
+          [loading]="isLoadingLogistica"
+          pTooltip="Limpar"
+          [outlined]="true"
+          severity="success"
+          icon="pi pi-eraser"
+          tooltipPosition="bottom"
+        ></p-button>
+      </div>
+  </div>
+
+  </div> -->
     <p-table
-    [value]="dadosFilter"
+    [value]="dadosFilterArr"
     [tableStyle]="{ 'min-width': '50rem' }"
     [paginator]="true"
     [rows]="10"
@@ -193,9 +231,8 @@
       </ng-template>
     </p-table>
   </div>
-  <notification></notification>
-  <loading [loading]="isLoading"></loading>
 </div>
+
 <p-dialog
   [maximizable]="true"
   header="Itens do Pedido"
@@ -259,15 +296,9 @@
       <ng-template pTemplate="header">
         <tr>
           <th style="width: 5rem">
-            <!-- <button (click)="toggleAllRows()" pButton pRipple class="p-button-text">
-                      Toggle All
-                  </button> -->
           </th>
-          <th>Img</th>
-          <th>Descrição</th>
-          <th>Código</th>
-          <th>Quantidade</th>
-          <th>Valor</th>
+          <th colspan="2">Produc Detail</th>
+          <th>Valor total</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-ped>
@@ -286,11 +317,38 @@
               "
             ></button>
           </td>
-          <td><img [src]="ped.img" height="200px" width="200px" [alt]="ped.descricao" ></td>
-          <td>{{ ped.descricao }}</td>
-          <td>{{ ped.codigo }}</td>
-          <td>{{ ped.quantidade }}</td>
-          <td>{{ ped.valor | currency : "BRL" }}</td>
+          <td style="padding: 0rem; width: 3rem;">
+            <img *ngIf="!isLoadingProduct" [src]="ped.img" height="120px" width="120px" [alt]="ped.descricao" >
+            <i *ngIf="isLoadingProduct" class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+          </td>
+          <td>
+            <span class="font-bold p-0" style="padding: 0.5rem;">
+              {{ ped.descricao }}
+            </span><br>
+            <span>
+             SKU: {{ ped.codigo }}
+            </span><br>
+             <span>
+              Peso e Dimensões: {{ ped.dimensoes }}
+             </span><br>
+          </td>
+
+          <!-- Valor e quantidade dos produtos -->
+
+          <td style="row-gap: 10px;" class="flex flex-column justify-content-center align-items-end">
+            <br>
+           <span>
+            {{ ped.valor | currency : "BRL" }}
+           </span>
+           <span>
+            Qtd: <span style="background: #035110;color: #fff; padding: 3px ;border-radius: 5px">{{ ped.quantidade }}</span>
+           </span>
+           <span>
+            Total:{{ ped.quantidade * ped.valor | currency : "BRL" }}
+           </span>
+
+
+          </td>
         </tr>
         <tr *ngIf="expandedRows[ped.name]" class="expansion-detail">
           <td colspan="7">
@@ -307,10 +365,7 @@
 
                     <div class="footer">
                       <span style="color: #000; font-size: 9px" #sku></span>
-                      <span style="color: #000; font-size: 9px" #qtde></span>
-                      <!-- <span style="color: #000; font-size: 9px" class="date">{{
-                        hoje | date : "dd/MM/yyyy"
-                      }}</span> -->
+                      <span style="color: #000; font-size: 11px" #qtde></span>
                     </div>
                     <div
                       class="barcode-holder"
@@ -361,28 +416,27 @@
         severity="success"
         pTooltip="Imprime etiqueta de transporte + Danfe Simplificada"
         icon="pi pi-ticket"
-        label=" Imprimir etiquetas de transporte + Danfe Simplificada"
+        label=" Imprimir etiquetas de transporte + Danfe"
       ></p-button>
 
         <p-button
         class="xl:col-4 sm:col-12"
-        (click)="putSituation(pedido.id, situacoes[1].id)"
+        (click)="putSituation(pedido.id, situacoes[6].id)"
         severity="success"
-        label="Liberar para expedição (Atendido)"
-        pTooltip="Muda status do pedido para [Atendido]"
+        label="Liberar para expedição (Verificado)"
+        pTooltip="Muda status do pedido para [Verificado]"
         icon="pi pi-check-circle"
         [outlined]="true"
       ></p-button>
-
-
     </div>
   </div>
 </p-dialog>
 
 <pdf-viewer
-[header]="'Pdf Viewer'"
-[url]="urlPdf"
-[display]="visualizarDialogPdf"
-*ngIf="visualizarDialogPdf">
-
+  [header]="'Pdf Viewer'"
+  [url]="urlPdf"
+  [display]="visualizarDialogPdf"
+  *ngIf="visualizarDialogPdf">
 </pdf-viewer>
+<notification></notification>
+<loading [loading]="isLoading"></loading>

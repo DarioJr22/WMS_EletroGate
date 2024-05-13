@@ -57,15 +57,23 @@ import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading/loading.component';
 import { CdTimerModule } from 'angular-cd-timer';
 import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
+import { ModalComponent } from './modal/modal.component';
+import { TableComponent } from './table/table.component';
 // bootstrapApplication(AppComponent, {
 //     providers: [provideEnvironmentNgxMask()],
 // }).catch((err) => console.error(err));
+
+
+
+//TODO - Componentizar esse projeto pra melhorar a manutenção
 
 @NgModule({
   declarations: [
     NotificationComponent,
     LoadingComponent,
-    PdfViewerComponent
+    PdfViewerComponent,
+    ModalComponent,
+    TableComponent
   ],
   imports: [
     CommonModule,
@@ -182,7 +190,9 @@ import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
     LoadingComponent,
     CdTimerModule,
     PdfViewerComponent,
-    CheckboxModule
+    CheckboxModule,
+    ModalComponent,
+    TableComponent
   ],
   providers: [
     MessageService,

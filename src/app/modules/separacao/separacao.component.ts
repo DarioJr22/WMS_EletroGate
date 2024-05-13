@@ -82,6 +82,9 @@ export class SeparacaoComponent implements OnInit {
 
   logisticas = logistic
   servico = service
+  isLoadingProduct: boolean = false
+  filterActive:boolean = false
+  dadosFilterArr:any[] = []
 
   searchOnEnter(e:KeyboardEvent | Date){
    if(e instanceof KeyboardEvent && e.code == "Enter" || e instanceof Date){
@@ -316,7 +319,21 @@ export class SeparacaoComponent implements OnInit {
           this.getPedidos(params, dataSource);
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
+          this.dadosFilterArr = this.dataTempTable;
+         /*  this.getOrderTest(20257925227)
+          this.getOrderTest(20277861575)
+          this.getOrderTest(20277138298)
+          this.getOrderTest(20277098485)
+          this.getOrderTest(20276815100)
+          this.getOrderTest(20276792246)
+          this.getOrderTest(20276779516)
+          this.getOrderTest(20276772252)
+          this.getOrderTest(20276284746)
+          this.getOrderTest(20276213570) */
+
+
           this.dadosFilter.length == 1 ? this.getDetalhePedido(this.dadosFilter[0]) : '';
+        /*   this.getDataDetail(this.dadosFilter) */
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -351,6 +368,9 @@ export class SeparacaoComponent implements OnInit {
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         })
+      },
+      complete: () => {
+        this.getDataDetail(this.dadosFilter)
       }
     })
   }
@@ -370,23 +390,19 @@ export class SeparacaoComponent implements OnInit {
         this.pedido.itens.forEach((i:any) => i.img = '')
         this.visualizarDialog = true;
         this.generateBarcode().then();
-        this.getProductDetail()
-
-
-        console.log();
-
+        this.getProductDetail();
         //Id do pedido | Id da situação - Em separação
         if (item.situacao.id != situacoes[9].id) {
           this.putSituation(item.id, situacoes[9].id);
-          this.reloadTable();
+          this.dadosFilter.length > 1 ? this.reloadTable() : '';
         }else{
           //Caso o pedido já esteja em separação ->
           //  -> Recarrega a tabela,
           //  -> fecha o modal
           //  -> manda uma notificação.
-/*
-          this.visualizarDialog = false
-          this.reloadTable();
+
+        /*   this.visualizarDialog = false
+          this.dadosFilter.length > 1 ? this.reloadTable() : '';
           this.notify.notify({
             message: `Atenção: já este pedido está em separação !`,
             type: NotificationType.ERROR,
@@ -445,7 +461,7 @@ export class SeparacaoComponent implements OnInit {
   }
   detalhes:any = []
   getProductDetail(){
-    this.isLoading = true
+    this.isLoadingProduct = true;
     //Retorna a lista de ids dos produtos
     let iDitens = this.pedido.itens.map((item: any) =>  item.produto.id);
     //Uma observable por id
@@ -460,19 +476,17 @@ export class SeparacaoComponent implements OnInit {
             this.detalhes.push(prd.data);
             this.getPhotos(prd.data)
           });
-
         }
-
       },
       error: (err: any) => {
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
         });
-        this.isLoading = false
+        this.isLoadingProduct = false;
       },
       complete: () => {
-        this.isLoading = false
+        this.isLoadingProduct = false;
       },
     })
 }
@@ -483,6 +497,8 @@ export class SeparacaoComponent implements OnInit {
 
 
               element.img = item.midia.imagens.externas[0].link
+              element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
+
             }
           }
         );
@@ -639,71 +655,54 @@ export class SeparacaoComponent implements OnInit {
   isLoadingLogistica = false
   getDataDetail(dadosFilter:any[]){
     this.isLoadingLogistica = true
-    const TIMEOUT = 2000
-    let intervalo = interval(TIMEOUT);
-    let nr = 0;
-    let id = 0;
-    console.log("COmeçamos denovo");
 
-    let subs = intervalo.subscribe((n) => {
-      //Caso ainda tenham registros no array
-      if(dadosFilter[nr]){
-      //Recupera o id do registro
-        id = dadosFilter[nr].id;
-      //Aumenta o contador
-        nr += 1;
-
-        this.pedidoServ.getPedidosDetail(id).subscribe({
-          next: (res: any) => {
-            let i = res.data;
-            this.ordersDetail.push(res.data);
-            Object.assign(this.dadosFilter[nr - 1], i);
-          },
-          error: (err: any) => {
-            this.notify.notify({
-              message: `Erro: ${this.pedidoServ.handleError(err)}`,
-              type: NotificationType.ERROR,
-            });
-          },
-          complete: () => {
-            console.log('complete');
-            if (nr + 1 == this.ordersDetail.length) {
-              console.log(this.dadosFilter);
-              this.isLoadingLogistica = false;
-              subs.unsubscribe();
+    this.dadosFilter.forEach((item: any,index) => {
+      let id = item.id
+      this.pedidoServ.getPedidosDetail(id).subscribe({
+        next: (res: any) => {
+          let i = res.data;
+          this.ordersDetail.push(res.data);
+          Object.assign(this.dadosFilter[index], i);
+        },
+        error: (err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+        },
+        complete: () => {
+          console.log('complete');
+          console.log(index,this.dadosFilter[index]);
+          if(index == (this.dadosFilter.length - 1)){
+            this.isLoadingLogistica = false
             }
-          },
-        });
-
-        }
-      }
-    );
+        },
+      });
 
 
-    setTimeout(() => {
-      this.isLoadingLogistica = false;
-    }, TIMEOUT*this.dadosFilter.length);
+    })
   }
 
   limparFiltro(){
-    this.nfSelected = {value:''}
     this.logisticaSelected = {descricao:''}
+    this.dadosFilterArr = this.dadosFilter
   }
 
   filter(){
     let log = this.findLogistica(this.logisticaSelected.descricao)
     let serv = this.findService(log?.id)
-    this.dadosFilter = this.dadosFilter.filter( (i:any) =>
-      i.transporte.volumes &&
-    i.transporte.volumes != null &&
-    i.transporte.volumes != undefined &&
-    i.transporte.volumes > 0  ? this.findServiceByName(i.transporte.volumes[0].servico,serv) > 0  : false  )
-
-  console.log(this.dadosFilter);
-
+    this.dadosFilterArr = this.dadosFilter.filter( (i:any) =>
+    {
+          if (i.transporte.volumes && i.transporte.volumes.length > 0) {
+            return this.findServiceByName(i.transporte.volumes[0].servico, serv) > 0;
+        } else {
+            return false;
+        }
+      }
+    )
   }
 
-dadosFilterArr = []
+
 
 
   findLogistica(str:string){
@@ -711,21 +710,11 @@ dadosFilterArr = []
   }
 
   findService(idLogistico:any){
-    console.log(idLogistico);
-
     return service.filter((i:any) => i.logistica.id == idLogistico )
   }
 
   findServiceByName(str:string,services:any[] ){
     return services.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) ).length
   }
-
-
-
-
-
-
-
-
 }
 

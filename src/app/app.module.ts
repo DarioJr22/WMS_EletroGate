@@ -6,13 +6,15 @@ import { AppComponent } from './app.component';
 import { AuthComponent } from './modules/auth/auth.component';
 import { AppRoutingModule } from './app-routing.module';
 import { CookieService } from 'ngx-cookie-service';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { SeparacaoComponent } from './modules/separacao/separacao.component';
 import { PedidosService } from './services/pedidos.service';
 import { SharedModule } from './shared/shared.module';
 import { OpcoesComponent } from './modules/opcoes/opcoes.component';
 import { ConferenciaComponent } from './modules/conferencia/conferencia.component';
 import { LogisticasService } from './services/logisitica.service';
+import { RateLimitInterceptor } from './services/rate.interceptor';
+
 
 @NgModule({
   declarations: [
@@ -29,7 +31,9 @@ import { LogisticasService } from './services/logisitica.service';
     AppRoutingModule,
     HttpClientModule,
   ],
-  providers: [CookieService, PedidosService, LogisticasService],
+  providers: [CookieService, PedidosService, LogisticasService,
+   { provide:HTTP_INTERCEPTORS,useClass:RateLimitInterceptor, multi:true}
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
