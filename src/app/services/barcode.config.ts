@@ -19,13 +19,6 @@ export class BarCodeConfig {
 export function templatebarcode(printContents:any,number?:any) {
   let divspace = ''
 
-  if(number == 2){
-    for (let index = 0; index <= number; index++) {
-
-      divspace += '<div class="space"></div>\n'
-     }
-
-  }
 
  const template = `<html>
   <header>
@@ -33,7 +26,7 @@ export function templatebarcode(printContents:any,number?:any) {
     <style>
     .wrapper-40x25 {
       width: 40mm;
-      height: 25mm;
+      height: 24mm;
       background-color: #fff;
       box-sizing: border-box;
       display: flex;
@@ -88,8 +81,13 @@ export function templatebarcode(printContents:any,number?:any) {
 
 
   ${printContents}
+
+
+
   ${
-    divspace != '' ? divspace : ''
+    number == 2  ?
+    '<div class="space" style="height: 100vh"></div> ' +
+    '<div class="space" style="height: 100vh"></div>' : ''
   }
 
   </body>

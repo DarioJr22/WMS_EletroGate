@@ -176,7 +176,7 @@ export class ConferenciaComponent implements OnInit {
       windowPrint!.document.close();
       windowPrint!.focus();
 
-      setTimeout(() => {
+       setTimeout(() => {
         windowPrint!.print();
         windowPrint!.close();
       }, 250);
