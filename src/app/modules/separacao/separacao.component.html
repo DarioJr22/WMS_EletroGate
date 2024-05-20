@@ -125,46 +125,19 @@
 
   <div class="card">
 
-    <div  style="width: 100%;">
-    <!--   <span style="width: 100%; display: flex;justify-content: end; margin-bottom: 1rem;">
-        <p-button [loading]="isLoadingLogistica" pTooltip="Filtro" tooltipPosition="bottom" (click)="filterActive = !filterActive"  severity="success" icon="pi pi-filter"></p-button>
+    <div  style="width: 100%; ">
+      <span style="width: 100%; display: flex;justify-content: end; margin-bottom: 1rem;">
+        <p-button pTooltip="Filtro" tooltipPosition="bottom" (click)="filterActive = !filterActive"  severity="success" icon="pi pi-filter"></p-button>
       </span>
 
 
       <div class="filter" [ngClass]="{ 'filter-active':filterActive }" >
-        <h1>Filtro</h1>
-        <div class="flex m-3 justify-content-center">
-          <div class="col-5">
-            <div style="width: 100%;" class="flex flex-column gap-2">
-                <label  for="username">Logistica</label>
-                <p-dropdown
-                name="username"
-                [disabled]="isLoadingLogistica"
-                [options]="logisticas"
-                [(ngModel)]="logisticaSelected"
-                (ngModelChange)="filter()"
-                optionLabel="descricao"
-                placeholder="Seleciona a opção logistica">
-              </p-dropdown>
-            </div>
-        </div>
-        <div style="display: flex;
-        align-items: end;
-        justify-content: start;" class="col-1">
-          <p-button
-            (click)="limparFiltro()"
-            [loading]="isLoadingLogistica"
-            pTooltip="Limpar"
-            [outlined]="true"
-            severity="success"
-            icon="pi pi-eraser"
-            tooltipPosition="bottom"
-          ></p-button>
-        </div>
-    </div>
-    </div>
- -->
-
+          <button-filter
+          [loading]="isLoadingLogistica"
+          (buttonClick)="filter($event)"
+          (clean)="limparFiltro()" >
+          </button-filter>
+      </div>
     <p-table
       [value]="dadosFilterArr"
       [tableStyle]="{ 'min-width': '50rem' }"
@@ -176,7 +149,6 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Id</th>
           <th>N° Pedido</th>
           <th>Data</th>
           <th>Loja</th>
@@ -187,14 +159,11 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td style="white-space: nowrap;">{{ item.id }}</td>
           <td style="white-space: nowrap;">{{ item.numero }}</td>
           <td style="white-space: nowrap;">{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td style="white-space: nowrap;">{{ item.loja ? item.loja.id : "" }}</td>
           <td style="white-space: nowrap;">{{ item.contato?.nome }}</td>
-          <td style="
-          width: 100%;
-          ">
+          <td>
             <span
             [innerHTML]="getSitucaoStl(item.situacao?.id)[0]"
             style="

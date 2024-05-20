@@ -320,20 +320,15 @@ export class SeparacaoComponent implements OnInit {
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
           this.dadosFilterArr = this.dataTempTable;
-         /*  this.getOrderTest(20257925227)
-          this.getOrderTest(20277861575)
-          this.getOrderTest(20277138298)
-          this.getOrderTest(20277098485)
-          this.getOrderTest(20276815100)
-          this.getOrderTest(20276792246)
-          this.getOrderTest(20276779516)
-          this.getOrderTest(20276772252)
-          this.getOrderTest(20276284746)
-          this.getOrderTest(20276213570) */
-
-
-          this.dadosFilter.length == 1 ? this.getDetalhePedido(this.dadosFilter[0]) : '';
-        /*   this.getDataDetail(this.dadosFilter) */
+         /*  this.getOrderTest() */
+          this.getDataDetail(this.dadosFilter)
+          //Para evitar a inicialização automática do modal de detalhes
+         if( this.dadosFilter.length == 1  &&
+            this.form.controls['numCliente'].value != null ||
+            this.form.controls['numPedido'].value != null ||
+            this.form.controls['numPedidoLojaVirtual'].value != null) {
+              this.getDetalhePedido(this.dadosFilter[0]) ;
+         }
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -354,12 +349,36 @@ export class SeparacaoComponent implements OnInit {
     });
   }
 
-  getOrderTest(id: number) {
+  getOrderTest() {
     this.isLoading = true
-    this.pedidoServ.getPedidosDetail(id).subscribe({
+
+  let ids = [
+              20277861575,
+              20277138298,
+              20277098485,
+              20276815100,
+              20276792246,
+              20276779516,
+              20276772252,
+              20276284746,
+              20276213570,
+              20276792246,
+              20276779516,
+              20276772252,
+              20276284746,
+              20276213570
+            ]
+
+    let obs = ids.map(id => this.pedidoServ.getPedidosDetail(id))
+    forkJoin(obs).subscribe({
       next: (res: any) => {
-        let itens:Objeto[] = [];
-        itens.push(res.data);
+        let itens:any[] = [];
+        res.forEach((i:any) => {
+          itens.push(i.data);
+        })
+
+        console.log(itens);
+
         this.dadosFilter.push(...itens);
       },
       error: (err: any) => {
@@ -619,7 +638,6 @@ export class SeparacaoComponent implements OnInit {
     this.form.controls['data'].setValue(this.getDateRange(30));
   }
 
- /*  logisticas:any = [] */
   logisticaSelected: any  = []
 
   getLogisticas(){
@@ -649,6 +667,8 @@ export class SeparacaoComponent implements OnInit {
 
 
 
+  /* Filtro por logística */
+
   ordersDetail:any = [];
   nfs:any = [];
   nfSelected: any  = []
@@ -656,31 +676,27 @@ export class SeparacaoComponent implements OnInit {
   getDataDetail(dadosFilter:any[]){
     this.isLoadingLogistica = true
 
-    this.dadosFilter.forEach((item: any,index) => {
-      let id = item.id
-      this.pedidoServ.getPedidosDetail(id).subscribe({
-        next: (res: any) => {
-          let i = res.data;
-          this.ordersDetail.push(res.data);
-          Object.assign(this.dadosFilter[index], i);
-        },
-        error: (err: any) => {
-          this.notify.notify({
-            message: `Erro: ${this.pedidoServ.handleError(err)}`,
-            type: NotificationType.ERROR,
+    let obs = this.dadosFilter.map((item: any,index) => {
+     let id = item.id
+     return this.pedidoServ.getPedidosDetail(id)
+    })
+
+    forkJoin(obs).subscribe({
+      next: (res: any) => {
+          res.forEach((item: any,index:any) => {
+            this.dadosFilter[index] = item.data
           });
         },
-        complete: () => {
-          console.log('complete');
-          console.log(index,this.dadosFilter[index]);
-          if(index == (this.dadosFilter.length - 1)){
-            this.isLoadingLogistica = false
-            }
-        },
-      });
-
-
-    })
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
+      },
+      complete: () => {
+      this.isLoadingLogistica = false
+      },
+    });
   }
 
   limparFiltro(){
@@ -688,8 +704,8 @@ export class SeparacaoComponent implements OnInit {
     this.dadosFilterArr = this.dadosFilter
   }
 
-  filter(){
-    let log = this.findLogistica(this.logisticaSelected.descricao)
+  filter(ev:any){
+    let log = this.findLogistica(ev)
     let serv = this.findService(log?.id)
     this.dadosFilterArr = this.dadosFilter.filter( (i:any) =>
     {

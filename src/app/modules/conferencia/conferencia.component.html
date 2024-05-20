@@ -118,51 +118,26 @@
             [loading]="isLoading"
             icon="pi pi-search"
             pTooltip="Pesquisar"
-            tooltipPosition="bottom"
+            D="bottom"
           ></p-button>
         </div>
       </div>
     </div>
   </div>
   <div class="card">
-   <!--  <span style="width: 100%; display: flex;justify-content: end; margin-bottom: 1rem;">
+
+     <span style="width: 100%; display: flex;justify-content: end; margin-bottom: 1rem;">
       <p-button pTooltip="Filtro" tooltipPosition="bottom" (click)="filterActive = !filterActive"  severity="success" icon="pi pi-filter"></p-button>
     </span>
 
 
     <div class="filter" [ngClass]="{ 'filter-active':filterActive }" >
-      <h1>Filtro</h1>
-      <div class="flex m-3 justify-content-center">
-        <div class="col-5">
-          <div style="width: 100%;" class="flex flex-column gap-2">
-              <label  for="username">Logistica</label>
-              <p-dropdown
-              name="username"
-              [disabled]="isLoadingLogistica"
-              [options]="logisticas"
-              [(ngModel)]="logisticaSelected"
-              (ngModelChange)="filter()"
-              optionLabel="descricao"
-              placeholder="Seleciona a opção logistica">
-            </p-dropdown>
-          </div>
-      </div>
-      <div style="display: flex;
-      align-items: end;
-      justify-content: start;" class="col-1">
-        <p-button
-          (click)="limparFiltro()"
-          [loading]="isLoadingLogistica"
-          pTooltip="Limpar"
-          [outlined]="true"
-          severity="success"
-          icon="pi pi-eraser"
-          tooltipPosition="bottom"
-        ></p-button>
-      </div>
-  </div>
-
-  </div> -->
+        <button-filter
+        [loading]="isLoadingLogistica"
+        (buttonClick)="filter($event)"
+        (clean)="limparFiltro()" >
+        </button-filter>
+    </div>
     <p-table
     [value]="dadosFilterArr"
     [tableStyle]="{ 'min-width': '50rem' }"
@@ -173,7 +148,6 @@
     [rowsPerPageOptions]="[5,10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
-          <th>Id</th>
           <th>N° Pedido</th>
           <th>Data</th>
           <th>Loja</th>
@@ -184,7 +158,6 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.id }}</td>
           <td>{{ item.numero }}</td>
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
           <td>{{ item.loja ? item.loja.id : "" }}</td>

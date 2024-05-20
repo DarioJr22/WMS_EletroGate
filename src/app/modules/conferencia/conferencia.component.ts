@@ -203,7 +203,8 @@ export class ConferenciaComponent implements OnInit {
   }
 
   modalidadeEnvio(vol: any[]) {
-    return vol.map((i: any) => `${i.id} - ${i.servico}`);
+
+    return vol.map((i: any) => `${i.id} - ${i.servico} - ${this.findLogisticaNameByService(i.servico)}`);
   }
 
   getModulo() {
@@ -296,11 +297,16 @@ export class ConferenciaComponent implements OnInit {
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
           this.dadosFilterArr = this.dataTempTable;
-          this.dadosFilter.length == 1  ? this.getDetalhePedido(this.dadosFilter[0]) : '';
-        /*   this.getDataDetail(this.dadosFilter); */
-          /* this.getOrderTest(20257925227) */
+          /* this.getOrderTest() */
+         this.getDataDetail(this.dadosFilter)/*   */
 
-
+             //Para evitar a inicialização automática do modal de detalhes
+         if( this.dadosFilter.length == 1  &&
+          this.form.controls['numCliente'].value != null ||
+          this.form.controls['numPedido'].value != null ||
+          this.form.controls['numPedidoLojaVirtual'].value != null) {
+            this.getDetalhePedido(this.dadosFilter[0]) ;
+        }
           this.dataTempTable = [];
         } else if (itens.length < 100 && dataSource == 'chart') {
           this.dados = this.dataTempChart;
@@ -336,11 +342,21 @@ export class ConferenciaComponent implements OnInit {
         this.pedido.itens.forEach((i: any) => (i.img = ''));
         this.visualizarDialog = true;
         this.generateBarcode().then();
-        this.dadosFilter.length > 1 ? this.reloadTable() : '';
-        this.getProductDetail();
-        this.pedido.itens.sort((a: any, b: any) =>
-          a.codigo < b.codigo ? -1 : 1
-        );
+
+        if (item.situacao.id != situacoes[2].id) {
+          this.dadosFilter.length > 1 ? this.reloadTable() : '';
+          this.getProductDetail();
+          this.pedido.itens.sort((a: any, b: any) =>
+            a.codigo < b.codigo ? -1 : 1
+          );
+        } else {
+          this.visualizarDialog = false
+          this.notify.notify({
+            message: `Atenção: Este pedido está cancelado !`,
+            type: NotificationType.ERROR,
+          })
+        }
+
       },
       error: (err: any) => {
         this.visualizarDialog = false;
@@ -862,12 +878,36 @@ export class ConferenciaComponent implements OnInit {
     return extractPromise;
   }
 
-  getOrderTest(id: number) {
-    this.isLoading = true;
-    this.pedidoServ.getPedidosDetail(id).subscribe({
+  getOrderTest() {
+    this.isLoading = true
+
+  let ids = [
+              20277861575,
+              20277138298,
+              20277098485,
+              20276815100,
+              20276792246,
+              20276779516,
+              20276772252,
+              20276284746,
+              20276213570,
+              20276792246,
+              20276779516,
+              20276772252,
+              20276284746,
+              20276213570
+            ]
+
+    let obs = ids.map(id => this.pedidoServ.getPedidosDetail(id))
+    forkJoin(obs).subscribe({
       next: (res: any) => {
-        let itens: Objeto[] = [];
-        itens.push(res.data);
+        let itens:any[] = [];
+        res.forEach((i:any) => {
+          itens.push(i.data);
+        })
+
+        console.log(itens);
+
         this.dadosFilter.push(...itens);
       },
       error: (err: any) => {
@@ -875,9 +915,12 @@ export class ConferenciaComponent implements OnInit {
         this.notify.notify({
           message: `Erro: ${this.pedidoServ.handleError(err)}`,
           type: NotificationType.ERROR,
-        });
+        })
       },
-    });
+      complete: () => {
+        this.getDataDetail(this.dadosFilter)
+      }
+    })
   }
   searchOnEnter(e: KeyboardEvent | Date) {
     if (
@@ -944,27 +987,27 @@ export class ConferenciaComponent implements OnInit {
   getDataDetail(dadosFilter:any[]){
     this.isLoadingLogistica = true
 
-    this.dadosFilter.forEach((item: any,index) => {
-      let id = item.id
-      this.pedidoServ.getPedidosDetail(id).subscribe({
-        next: (res: any) => {
-          let i = res.data;
-          Object.assign(this.dadosFilter[index], i);
-        },
-        error: (err: any) => {
-          this.notify.notify({
-            message: `Erro: ${this.pedidoServ.handleError(err)}`,
-            type: NotificationType.ERROR,
-          });
-          this.isLoadingLogistica = false;
-        },
-        complete: () => {
-          console.log('complete');
-          console.log(this.dadosFilter);
-            this.isLoadingLogistica = false;
-        },
-      });
+    let obs = this.dadosFilter.map((item: any,index) => {
+     let id = item.id
+     return this.pedidoServ.getPedidosDetail(id)
     })
+
+    forkJoin(obs).subscribe({
+      next: (res: any) => {
+          res.forEach((item: any,index:any) => {
+            this.dadosFilter[index] = item.data
+          });
+        },
+      error: (err: any) => {
+        this.notify.notify({
+          message: `Erro: ${this.pedidoServ.handleError(err)}`,
+          type: NotificationType.ERROR,
+        });
+      },
+      complete: () => {
+      this.isLoadingLogistica = false
+      },
+    });
   }
 
   limparFiltro(){
@@ -972,8 +1015,8 @@ export class ConferenciaComponent implements OnInit {
     this.dadosFilterArr = this.dadosFilter
   }
 
-  filter(){
-    let log = this.findLogistica(this.logisticaSelected.descricao)
+  filter(ev:any){
+    let log = this.findLogistica(ev)
     let serv = this.findService(log?.id)
     this.dadosFilterArr = this.dadosFilter.filter( (i:any) =>
     {
@@ -999,5 +1042,13 @@ export class ConferenciaComponent implements OnInit {
 
   findServiceByName(str:string,services:any[] ){
     return services.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) ).length
+  }
+
+  findLogisticaNameByService(str:string ){
+    let idList = service.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) )
+    let id = 0
+    id = idList[0].logistica.id
+
+    return logistic.find((i:any) => i.id == id )?.descricao
   }
 }

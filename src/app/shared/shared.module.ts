@@ -59,6 +59,7 @@ import { CdTimerModule } from 'angular-cd-timer';
 import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
 import { ModalComponent } from './modal/modal.component';
 import { TableComponent } from './table/table.component';
+import { ButtonFilterComponent } from './button-filter/button-filter.component';
 // bootstrapApplication(AppComponent, {
 //     providers: [provideEnvironmentNgxMask()],
 // }).catch((err) => console.error(err));
@@ -73,7 +74,8 @@ import { TableComponent } from './table/table.component';
     LoadingComponent,
     PdfViewerComponent,
     ModalComponent,
-    TableComponent
+    TableComponent,
+    ButtonFilterComponent
   ],
   imports: [
     CommonModule,
@@ -134,6 +136,7 @@ import { TableComponent } from './table/table.component';
   ],
 
   exports: [
+    ButtonFilterComponent,
     AccordionModule,
     AutoCompleteModule,
     AvatarModule,

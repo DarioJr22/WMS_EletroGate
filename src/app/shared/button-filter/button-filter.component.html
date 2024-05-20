@@ -1,0 +1,30 @@
+<div class="b-format flex align-items-center justify-content-center gap-3">
+
+  <i *ngIf="loading" class="pi pi-spin pi-spinner-dotted" style="font-size: 2rem"></i>
+
+<!--   <h3 *ngIf="!loading">Filtro</h3> -->
+  <span *ngFor="let filter of buttonData">
+    <p-avatar
+    *ngIf="!loading"
+    [image]="filter.img"
+    [pTooltip]="filter.tooltip"
+    (click)="onClick(filter.value)"
+    styleClass="mr-2"
+    class="buttonFilter"
+    size="xlarge"
+    shape="circle"
+    tooltipPosition="bottom"
+   />
+  </span>
+
+  <p-button
+  *ngIf="!loading"
+  (click)="limpar()"
+  severity="success"
+  [rounded]="true"
+  icon="pi pi-filter-slash"
+  pTooltip="Limpar filtro"
+  ></p-button>
+</div>
+
+
