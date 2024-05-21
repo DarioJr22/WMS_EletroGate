@@ -18,7 +18,7 @@ import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
-import { logistic,service } from 'src/app/services/logistcMock';
+import { logistic,salesChanel,service } from 'src/app/services/logistcMock';
 import { templatebarcode } from 'src/app/services/barcode.config';
 export interface Contato {
   id: number;
@@ -234,7 +234,7 @@ export class SeparacaoComponent implements OnInit {
   }
 
   modalidadeEnvio(vol: any[]) {
-    return vol.map((i: any) => `${i.id} - ${i.servico}`);
+    return vol.map((i: any) => `${i.id} - ${i.servico} - ${this.findLogisticaNameByService(i.servico)}`);
   }
 
   getModulo() {
@@ -478,13 +478,26 @@ export class SeparacaoComponent implements OnInit {
       },
     };
   }
+  productImgs:any[] = []
+  prodVar:Observable<any>[] = []
   detalhes:any = []
+  getCodeProdPai(produto:any){
+   //Recupera o código do produto pai
+    console.log(produto);
+
+   let nomeVar = produto.variacao.nome
+   let idVar = nomeVar.split(':')[1].toLowerCase()
+   let searchVar = produto.codigo.replace(`-${idVar}`,'')
+   return this.pedidoServ.getProductByCode(searchVar)
+  }
   getProductDetail(){
     this.isLoadingProduct = true;
     //Retorna a lista de ids dos produtos
     let iDitens = this.pedido.itens.map((item: any) =>  item.produto.id);
     //Uma observable por id
-    let obs = iDitens.map((element:any) => this.pedidoServ.getProductById(element));
+    let obs = iDitens.map((element:any) => {
+     return this.pedidoServ.getProductById(element)
+    });
     //Busca todas de uma vez
     forkJoin(obs).subscribe({
       next: (res: any) => {
@@ -493,7 +506,13 @@ export class SeparacaoComponent implements OnInit {
         if(res){
           res.forEach((prd:any) => {
             this.detalhes.push(prd.data);
-            this.getPhotos(prd.data)
+            //Verifica se o produto é uma varição ou não
+            if(prd.data.variacao){
+              this.prodVar.push(this.getCodeProdPai(prd.data))
+            } else {
+              this.getPhotos(prd.data)
+            }
+
           });
         }
       },
@@ -505,23 +524,49 @@ export class SeparacaoComponent implements OnInit {
         this.isLoadingProduct = false;
       },
       complete: () => {
-        this.isLoadingProduct = false;
+        this.prodVar.length > 0 ? this.getProductPais() : this.isLoadingProduct = false;
+
+        this.getProductPais();
       },
     })
-}
+  }
 
     getPhotos(item: any){
       this.pedido.itens.forEach((element:any ) => {
+        //Caso não seja pelo id ( Produto filh ) Será na recuperação de produto pai que vem com o imgurl
             if(element.produto.id == item.id ){
-
-
-              element.img = item.midia.imagens.externas[0].link
+              element.img = item.midia.imagens.externas.length > 0 ? item.midia.imagens.externas[0].link  : '';
               element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
-
+            } else if( item.imagemURL && element.codigo.includes(item.codigo)){
+              //Verifica se o código contém no item que estamos buscando
+              element.img = item.imagemURL;
             }
           }
         );
       }
+
+
+
+    getProductPais(){
+      this.isLoadingProduct = true;
+      forkJoin(this.prodVar).subscribe({
+        next: (res: any) => {
+          res.forEach((prd:any) => {
+            this.getPhotos(prd.data[0])
+          });
+        },
+        error: (err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+          this.isLoadingProduct = false;
+        },
+        complete: () => {
+          this.isLoadingProduct = false;
+        },
+      })
+    }
 
 
 
@@ -732,5 +777,19 @@ export class SeparacaoComponent implements OnInit {
   findServiceByName(str:string,services:any[] ){
     return services.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) ).length
   }
+
+  findLogisticaNameByService(str:string ){
+    let idList = service.filter((i:any) => i.descricao == str ||  i.aliases.includes(str) )
+    let id = 0
+    id = idList[0].logistica.id
+
+    return logistic.find((i:any) => i.id == id )?.descricao
+  }
+
+  findSalesChanel(id:number){
+    return salesChanel.find((i:any) => i.id == id) ? `${salesChanel.find((i:any) => i.id == id)?.descricao} - ${salesChanel.find((i:any) => i.id == id)?.tipo}` : id
+  }
+
+
 }
 

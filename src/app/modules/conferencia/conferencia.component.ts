@@ -22,7 +22,7 @@ import * as JsBarcode from 'jsbarcode';
 import {NFeXML } from '../../services/NFs'
 import Utils from 'src/app/services/Utils';
 import { templatebarcode } from 'src/app/services/barcode.config';
-import { logistic, service } from 'src/app/services/logistcMock';
+import { logistic, salesChanel, service } from 'src/app/services/logistcMock';
 
 @Component({
   selector: 'app-conferencia',
@@ -931,28 +931,41 @@ export class ConferenciaComponent implements OnInit {
     }
   }
 
+  productImgs:any[] = []
+  prodVar:Observable<any>[] = []
 
-  getProductDetail() {
+  getCodeProdPai(produto:any){
+   //Recupera o código do produto pai
+    console.log(produto);
+
+   let nomeVar = produto.variacao.nome
+   let idVar = nomeVar.split(':')[1].toLowerCase()
+   let searchVar = produto.codigo.replace(`-${idVar}`,'')
+   return this.pedidoServ.getProductByCode(searchVar)
+  }
+  getProductDetail(){
     this.isLoadingProduct = true;
     //Retorna a lista de ids dos produtos
-    let iDitens = this.pedido.itens.map((item: any) => item.produto.id);
-
+    let iDitens = this.pedido.itens.map((item: any) =>  item.produto.id);
     //Uma observable por id
-    let obs = iDitens.map((element: any) =>
-      this.pedidoServ.getProductById(element)
-    );
-
-    //Se for duas ou menos itens na lista - Manda tudo de uma vez !
-
+    let obs = iDitens.map((element:any) => {
+     return this.pedidoServ.getProductById(element)
+    });
     //Busca todas de uma vez
     forkJoin(obs).subscribe({
       next: (res: any) => {
         console.log(res);
 
-        if (res) {
-          res.forEach((prd: any) => {
+        if(res){
+          res.forEach((prd:any) => {
             this.detalhes.push(prd.data);
-            this.getPhotos(prd.data);
+            //Verifica se o produto é uma varição ou não
+            if(prd.data.variacao){
+              this.prodVar.push(this.getCodeProdPai(prd.data))
+            } else {
+              this.getPhotos(prd.data)
+            }
+
           });
         }
       },
@@ -964,23 +977,49 @@ export class ConferenciaComponent implements OnInit {
         this.isLoadingProduct = false;
       },
       complete: () => {
-        this.isLoadingProduct = false;
+        this.prodVar.length > 0 ? this.getProductPais() : this.isLoadingProduct = false;
+
+        this.getProductPais();
       },
-    });
-
+    })
   }
 
-  getPhotos(item: any) {
-    this.pedido.itens.forEach((element: any) => {
-      if (element.produto.id == item.id) {
-        console.log(item);
-        element.img = item.midia.imagens.externas[0].link;
-        element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
-
+    getPhotos(item: any){
+      this.pedido.itens.forEach((element:any ) => {
+        //Caso não seja pelo id ( Produto filh ) Será na recuperação de produto pai que vem com o imgurl
+            if(element.produto.id == item.id ){
+              element.img = item.midia.imagens.externas.length > 0 ? item.midia.imagens.externas[0].link  : '';
+              element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
+            } else if( item.imagemURL && element.codigo.includes(item.codigo)){
+              //Verifica se o código contém no item que estamos buscando
+              element.img = item.imagemURL;
+            }
+          }
+        );
       }
-    });
-  }
 
+
+
+    getProductPais(){
+      this.isLoadingProduct = true;
+      forkJoin(this.prodVar).subscribe({
+        next: (res: any) => {
+          res.forEach((prd:any) => {
+            this.getPhotos(prd.data[0])
+          });
+        },
+        error: (err: any) => {
+          this.notify.notify({
+            message: `Erro: ${this.pedidoServ.handleError(err)}`,
+            type: NotificationType.ERROR,
+          });
+          this.isLoadingProduct = false;
+        },
+        complete: () => {
+          this.isLoadingProduct = false;
+        },
+      })
+    }
 
   logisticaSelected: any  = []
 
@@ -1050,5 +1089,9 @@ export class ConferenciaComponent implements OnInit {
     id = idList[0].logistica.id
 
     return logistic.find((i:any) => i.id == id )?.descricao
+  }
+
+  findSalesChanel(id:number){
+    return salesChanel.find((i:any) => i.id == id) ? `${salesChanel.find((i:any) => i.id == id)?.descricao} - ${salesChanel.find((i:any) => i.id == id)?.tipo}`  : id
   }
 }

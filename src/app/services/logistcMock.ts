@@ -1145,3 +1145,55 @@ export const service =
     }
 ]
 
+
+export const salesChanel = [
+  {
+    "id": 203144843,
+    "descricao": "Eletrogate",
+    "tipo": "LojaIntegrada",
+    "situacao": 1
+  },
+  {
+    "id": 203198882,
+    "descricao": "B2W",
+    "tipo": "B2W",
+    "situacao": 2
+  },
+  {
+    "id": 203273655,
+    "descricao": "Teste",
+    "tipo": "LojaVirtual",
+    "situacao": 2
+  },
+  {
+    "id": 203347541,
+    "descricao": "Marketplace B2W",
+    "tipo": "B2W",
+    "situacao": 2
+  },
+  {
+    "id": 203451091,
+    "descricao": "Plugg.to",
+    "tipo": "PluggTo",
+    "situacao": 2
+  },
+  {
+    "id": 203633820,
+    "descricao": "MercadoLivre",
+    "tipo": "Api",
+    "situacao": 2
+  },
+  {
+    "id": 203758493,
+    "descricao": "Shopee",
+    "tipo": "Shopee",
+    "situacao": 2
+  },
+  {
+    "id": 204830429,
+    "descricao": "Plugg.To v2",
+    "tipo": "Api",
+    "situacao": 1
+  }
+]
+

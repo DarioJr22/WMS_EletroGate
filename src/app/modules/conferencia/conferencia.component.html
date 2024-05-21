@@ -160,7 +160,7 @@
         <tr>
           <td>{{ item.numero }}</td>
           <td>{{ item.data | date : "dd/MM/yyyy" }}</td>
-          <td>{{ item.loja ? item.loja.id : "" }}</td>
+          <td>{{ item.loja ? findSalesChanel(item.loja.id) : "" }}</td>
           <td>{{ item.contato.nome }}</td>
           <td>
             <span

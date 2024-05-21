@@ -421,5 +421,14 @@ export class PedidosService {
     return this.http.get<any>(`/Api/v3/produtos/${id}`, {headers: header})
   }
 
+  getProductByCode(code:string){
+    const token: any = this.tokenService.getToken();
+    const header = new HttpHeaders({
+      Authorization: `Bearer ${token.__zone_symbol__value}`,
+    })
+
+    return this.http.get<any>(`/Api/v3/produtos?codigo=${code}`, {headers: header})
+  }
+
 
 }// <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vedd3670a3b1c4e178fdfb0cc912d969e1713874337387" integrity="sha512-EzCudv2gYygrCcVhu65FkAxclf3mYM6BCwiGUm6BEuLzSb5ulVhgokzCZED7yMIkzYVg65mxfIBNdNra5ZFNyQ==" data-cf-beacon='{"rayId":"87d21feacc506f86","version":"2024.4.1","token":"182ecdcfb8194b148324a79d58192b9b"}' crossorigin="anonymous"></script>

@@ -161,7 +161,7 @@
         <tr>
           <td style="white-space: nowrap;">{{ item.numero }}</td>
           <td style="white-space: nowrap;">{{ item.data | date : "dd/MM/yyyy" }}</td>
-          <td style="white-space: nowrap;">{{ item.loja ? item.loja.id : "" }}</td>
+          <td style="white-space: nowrap;">{{ item.loja ? findSalesChanel(item.loja.id) : "" }}</td>
           <td style="white-space: nowrap;">{{ item.contato?.nome }}</td>
           <td>
             <span
