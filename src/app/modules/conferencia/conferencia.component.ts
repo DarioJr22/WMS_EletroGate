@@ -297,7 +297,7 @@ export class ConferenciaComponent implements OnInit {
         } else if (itens.length < 100 && dataSource == 'table') {
           this.dadosFilter = this.dataTempTable;
           this.dadosFilterArr = this.dataTempTable;
-          /* this.getOrderTest() */
+         /*  this.getOrderTest() */
          this.getDataDetail(this.dadosFilter)/*   */
 
              //Para evitar a inicialização automática do modal de detalhes
@@ -882,21 +882,10 @@ export class ConferenciaComponent implements OnInit {
     this.isLoading = true
 
   let ids = [
-              20277861575,
-              20277138298,
-              20277098485,
-              20276815100,
-              20276792246,
-              20276779516,
-              20276772252,
-              20276284746,
-              20276213570,
-              20276792246,
-              20276779516,
-              20276772252,
-              20276284746,
-              20276213570
-            ]
+    20355704474,
+    20353454967,
+    20331361322
+  ]
 
     let obs = ids.map(id => this.pedidoServ.getPedidosDetail(id))
     forkJoin(obs).subscribe({
@@ -936,16 +925,17 @@ export class ConferenciaComponent implements OnInit {
 
   getCodeProdPai(produto:any){
    //Recupera o código do produto pai
-    console.log(produto);
 
+    //Recupera o nome da variacao - Ex: vermelho / Com boot loader
    let nomeVar = produto.variacao.nome
-   let idVar = nomeVar.split(':')[1].toLowerCase()
+   //Se após separação por : tornar minusculo e separar os espaços o tamanho do array de resultado for maior que 1
+   let idVar = nomeVar.split(':')[1].toLowerCase().split(' ').length > 1 ? nomeVar.split(':')[1].toLowerCase().split(' ').join('-') : nomeVar.split(':')[1].toLowerCase()
    let searchVar = produto.codigo.replace(`-${idVar}`,'')
    return this.pedidoServ.getProductByCode(searchVar)
   }
   getProductDetail(){
     this.isLoadingProduct = true;
-    //Retorna a lista de ids dos produtos
+    //Retorna a lista de ids dos produtos1w
     let iDitens = this.pedido.itens.map((item: any) =>  item.produto.id);
     //Uma observable por id
     let obs = iDitens.map((element:any) => {
@@ -988,8 +978,8 @@ export class ConferenciaComponent implements OnInit {
       this.pedido.itens.forEach((element:any ) => {
         //Caso não seja pelo id ( Produto filh ) Será na recuperação de produto pai que vem com o imgurl
             if(element.produto.id == item.id ){
-              element.img = item.midia.imagens.externas.length > 0 ? item.midia.imagens.externas[0].link  : '';
-              element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
+              element.img = (item && item.midia) && item.midia.imagens.externas.length > 0 ? item.midia.imagens.externas[0].link  : '';
+             // element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
             } else if( item.imagemURL && element.codigo.includes(item.codigo)){
               //Verifica se o código contém no item que estamos buscando
               element.img = item.imagemURL;

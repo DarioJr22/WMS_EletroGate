@@ -486,7 +486,7 @@ export class SeparacaoComponent implements OnInit {
     console.log(produto);
 
    let nomeVar = produto.variacao.nome
-   let idVar = nomeVar.split(':')[1].toLowerCase()
+   let idVar = nomeVar.split(':')[1].toLowerCase().split(' ').length > 1 ? nomeVar.split(':')[1].toLowerCase().split(' ').join('-') : nomeVar.split(':')[1].toLowerCase()
    let searchVar = produto.codigo.replace(`-${idVar}`,'')
    return this.pedidoServ.getProductByCode(searchVar)
   }
