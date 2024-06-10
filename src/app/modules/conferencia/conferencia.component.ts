@@ -978,7 +978,16 @@ export class ConferenciaComponent implements OnInit {
       this.pedido.itens.forEach((element:any ) => {
         //Caso não seja pelo id ( Produto filh ) Será na recuperação de produto pai que vem com o imgurl
             if(element.produto.id == item.id ){
-              element.img = (item && item.midia) && item.midia.imagens.externas.length > 0 ? item.midia.imagens.externas[0].link  : '';
+              element.img = (item && item.midia) && item.midia.imagens.externas.length > 0 ?
+
+              item.midia.imagens.externas[0].link  :
+
+              (item && item.midia) && item.midia.imagens.internas.length > 0 ?
+
+              item.midia.imagens.internas[0].link :
+
+              '';
+
              // element.dimensoes = `${item.pesoBruto}kg - A:${item.dimensoes.largura}cm x L:${item.dimensoes.altura}cm x P:${item.dimensoes.profundidade}cm`;
             } else if( item.imagemURL && element.codigo.includes(item.codigo)){
               //Verifica se o código contém no item que estamos buscando
