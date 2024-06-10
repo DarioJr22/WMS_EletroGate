@@ -927,7 +927,11 @@ export class ConferenciaComponent implements OnInit {
    //Recupera o código do produto pai
 
     //Recupera o nome da variacao - Ex: vermelho / Com boot loader
-   let nomeVar = produto.variacao.nome
+   let nomeVar = (produto.variacao.nome && produto.variacao.nome != "") ?
+
+   produto.variacao.nome :
+
+   produto.nome
    //Se após separação por : tornar minusculo e separar os espaços o tamanho do array de resultado for maior que 1
    let idVar = nomeVar.split(':')[1].toLowerCase().split(' ').length > 1 ? nomeVar.split(':')[1].toLowerCase().split(' ').join('-') : nomeVar.split(':')[1].toLowerCase()
    let searchVar = produto.codigo.replace(`-${idVar}`,'')
