@@ -15,7 +15,7 @@ import { LogisticasService } from '../../services/logisitica.service';
 import { NotificationType } from 'src/app/services/notification';
 import { NotificationService } from 'src/app/shared/notification/notification.service';
 import { BuscaParams } from 'src/app/shared/params';
-import { Objeto } from '../separacao/separacao.component';
+import { Objeto } from '../pedidos-separacao/separacao.component';
 import { Observable, catchError, concatMap, delayWhen, forkJoin, from, interval, map, merge, mergeMap, of, switchMap, timer } from 'rxjs';
 import * as JsBarcode from 'jsbarcode';
 

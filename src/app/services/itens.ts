@@ -11,6 +11,13 @@ export interface Item{
   desconto:0;
 }
 
+export interface Situacoes {
+  id:number,
+  nome:string,
+  idHerdado:number,
+  cor:string
+}
+
 export const situacoes =
 [
       {

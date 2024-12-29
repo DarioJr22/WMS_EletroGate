@@ -5,7 +5,7 @@
         class="pi pi-list-check"
         style="transform: scale(3); color: #035110"
       ></i>
-      <h1>Conferência</h1>
+      <h1>Pedidos</h1>
     </span>
 
     <p-button
@@ -371,7 +371,7 @@
     <div class="buttonWrapper col-12  gap-3 justify-content-center p-3">
 
         <p-button
-        class="xl:col-4 sm:col-12"
+        class="xl:col-6 sm:col-12"
         severity="success"
         (click)="printAll()"
         pTooltip="Imprime as etiquetas dos itens do pedido"
@@ -381,22 +381,12 @@
 
 
         <p-button
-        class="xl:col-4 sm:col-12"
+        class="xl:col-6 sm:col-12"
         (click)="gerarEtqDanfe([pedido.id],pedido.notaFiscal.id)"
         severity="success"
         pTooltip="Imprime etiqueta de transporte + Danfe Simplificada"
         icon="pi pi-ticket"
         label=" Imprimir etiquetas de transporte + Danfe"
-      ></p-button>
-
-        <p-button
-        class="xl:col-4 sm:col-12"
-        (click)="putSituation(pedido.id, situacoes[6].id)"
-        severity="success"
-        label="Liberar para expedição (Verificado)"
-        pTooltip="Muda status do pedido para [Verificado]"
-        icon="pi pi-check-circle"
-        [outlined]="true"
       ></p-button>
     </div>
   </div>
@@ -410,3 +400,4 @@
 </pdf-viewer>
 <notification></notification>
 <loading [loading]="isLoading"></loading>
+
