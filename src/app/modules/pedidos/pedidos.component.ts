@@ -728,6 +728,50 @@ export class PedidosComponent implements OnInit {
       });
   }
 
+  gerarEtqTransporte(pedidoId: number[]) {
+
+    this.isLoading = true;
+    this.visualizarDialogPdf = false;
+    this.logisticasService.getEtiquetaDeTransporte(pedidoId).pipe(
+                                switchMap((res: any) => {
+                                  let etq = [];
+                                  let result: Observable<any>[] = [];
+                                  etq = res.data;
+
+                                  //Cria uma observable para cada link recuperado // Executa várias observables ao mesmo tempo
+                                  //Levando em consideração que em alguns casos serão necessários várias etiquetas de trasporte.
+                                  result = etq.map((element: any) => {
+                                    return this.logisticasService.getBlob(
+                                      this.formatLink(element.link)
+                                    );
+                                  });
+                                  //Executa todas ao mesmo tempo usando forkjoin
+                                  return forkJoin(result);
+                                }),
+
+                                map((res) => res)
+                              ).subscribe({
+                                next: async (blob: any) => {
+                                  let pdf = await Utils.printEtiquetaDeTransporte(blob[0]);
+                                  let url = URL.createObjectURL(pdf);
+                                  this.urlPdf = url;
+                                  console.log(blob[0]);
+                                  console.log(url)
+
+                                  this.visualizarDialogPdf = true;
+                                  this.isLoading = false;
+                                },
+                                error: (err: any) => {
+                                  this.isLoading = false;
+                                  this.visualizarDialogPdf = false;
+                                  this.notify.notify({
+                                    message: `Erro: ${err}`,
+                                    type: NotificationType.ERROR,
+                                  });
+                                }
+                              });;
+  };
+
   gerarNFE(danfeURL: string, xmlUrl: string) {
     this.pedidoServ.getDanfe(danfeURL).subscribe({
       next: (res: string) => {

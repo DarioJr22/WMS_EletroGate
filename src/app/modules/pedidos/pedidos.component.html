@@ -371,20 +371,28 @@
     <div class="buttonWrapper col-12  gap-3 justify-content-center p-3">
 
         <p-button
-        class="xl:col-6 sm:col-12"
+        class="xl:col-4 sm:col-12"
         severity="success"
         (click)="printAll()"
-        pTooltip="Imprime as etiquetas dos itens do pedido"
+        pTooltip=" Imprime as etiquetas dos itens do pedido"
         icon="pi pi-print"
         label=" Imprimir todas as etiquetas - Itens"
       ></p-button>
 
+      <p-button
+      class="xl:col-4 sm:col-12"
+      (click)="gerarEtqTransporte([pedido.id])"
+      severity="success"
+      pTooltip=" Imprime etiqueta de transporte"
+      icon="pi pi-ticket"
+      label=" Imprimir etiquetas de transporte"
+    ></p-button>
 
         <p-button
-        class="xl:col-6 sm:col-12"
+        class="xl:col-4 sm:col-12"
         (click)="gerarEtqDanfe([pedido.id],pedido.notaFiscal.id)"
         severity="success"
-        pTooltip="Imprime etiqueta de transporte + Danfe Simplificada"
+        pTooltip=" Imprime etiqueta de transporte + Danfe Simplificada"
         icon="pi pi-ticket"
         label=" Imprimir etiquetas de transporte + Danfe"
       ></p-button>

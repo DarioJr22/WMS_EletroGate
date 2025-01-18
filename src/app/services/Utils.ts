@@ -79,6 +79,18 @@ static drawTextWithLineBreaks(page: PDFPage, text: string, options: { x: number,
   }
 }
 
+static async printEtiquetaDeTransporte(blob:Blob){
+
+  //Carrega o pdf Carrega E
+  const arrayBuffer = await blob.arrayBuffer();
+  const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+  //Serialize the pdf documente to bytes
+  const pdfBytes = await pdfDoc.save();
+
+  //Convert the bytes to blob
+  return new Blob([pdfBytes],{type:'application/pdf'})
+}
 
 
 

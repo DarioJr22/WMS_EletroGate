@@ -17,6 +17,8 @@ export class PdfViewerComponent implements OnInit{
   constructor(private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
+    console.log(this.url);
+
     this.loadPdf(this.url);
   }
 
