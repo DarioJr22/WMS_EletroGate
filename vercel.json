@@ -14,7 +14,7 @@
     },
     {
       "source": "/bling/:path*",
-      "destination": "https://bling-storage.s3.sa-east-1.amazonaws.com/bling/:path*"
+      "destination": "https://bling-storage-replica.s3.us-east-1.amazonaws.com/bling/:path*"
     }
   ]
 }

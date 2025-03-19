@@ -707,6 +707,13 @@ export class PedidosComponent implements OnInit {
       )
       .subscribe({
         next: async (blob: any) => {
+          if(blob == null){
+            this.notify.notify({
+              message: `Erro: Erro ao retornar o arquivo de etiqueta de transporte. Ou Danfee. Favor contate o técnico responsável.`,
+              type: NotificationType.ERROR,
+            });
+          }
+
           let pdf = await Utils.addImgeToPDF(this.simplDanfeData, blob[0]);
           let url = URL.createObjectURL(pdf);
           this.urlPdf = url;
