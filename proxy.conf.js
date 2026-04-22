@@ -1,7 +1,7 @@
 const PROXY_CONFIG = [
   {
   context: ['/Api','/doc.view.php','/relatorios'],
-  target: 'https://www.bling.com.br/',
+  target: 'https://www.api.bling.com.br/',
   secure:false,
   changeOrigin: true,
   pathRewrite: { '^/': '/' }
