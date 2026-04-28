@@ -712,6 +712,7 @@ export class PedidosComponent implements OnInit {
               message: `Erro: Erro ao retornar o arquivo de etiqueta de transporte. Ou Danfee. Favor contate o técnico responsável.`,
               type: NotificationType.ERROR,
             });
+            console.error(blob);
           }
 
           let pdf = await Utils.addImgeToPDF(this.simplDanfeData, blob[0]);

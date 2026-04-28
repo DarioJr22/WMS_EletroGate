@@ -10,7 +10,7 @@ export class RateLimitInterceptor implements HttpInterceptor {
 
   constructor() {
     // Inicia o processo de verificação da fila a cada segundo
-    timer(0, 1000).pipe(
+    timer(0, 1500).pipe(
       exhaustMap(() => {
         if (this.requestQueue.length > 0) {
           return of(this.processBatch());

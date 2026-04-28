@@ -182,10 +182,10 @@ export class PedidosService {
     const token: any = this.tokenService.getToken();
     const header = new HttpHeaders({
       Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
+    });
     //Separa a parte da url que contem a extensão apropriada de acordo com a configuaração do proxy
-    const urlTransf = danfeURL.split('.br')[1]
-    //Busca a página em formato de blob
+    const urlTransf = danfeURL.split('.br')[1];
+    //Busca a página em formato de texto
     return this.http.get(urlTransf, { headers: header, responseType: 'text' });
   }
 
