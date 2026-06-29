@@ -1,0 +1,2 @@
+- [ ] Validar migração em prod
+- [ ] Planejar otimização 

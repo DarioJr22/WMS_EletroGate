@@ -4,7 +4,8 @@ import { Config } from './config';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { TokenService } from './token.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 //Sem o code
 
@@ -34,6 +35,7 @@ export class UserService {
         'Content-Type': 'application/x-www-form-urlencoded',
         Accept: '1.0',
         Authorization: `Basic ${btoa(Config.clientId + ':' + Config.secretId)}`,
+        'enable-jwt': '1',
       }),
     };
 
@@ -70,6 +72,38 @@ export class UserService {
         },
       });
     });
+  }
+
+  // Renova o token de acesso usando o refresh_token (mantendo o header enable-jwt).
+  refreshToken(): Observable<string> {
+    const urlToken = '/Api/v3/oauth/token';
+    const refreshToken = localStorage.getItem('refresh_token') ?? '';
+
+    const header = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: '1.0',
+        Authorization: `Basic ${btoa(Config.clientId + ':' + Config.secretId)}`,
+        'enable-jwt': '1',
+      }),
+    };
+
+    const body = new HttpParams()
+      .set('grant_type', 'refresh_token')
+      .set('refresh_token', refreshToken);
+
+    return this.http.post(urlToken, body.toString(), header).pipe(
+      map((data: any) => {
+        const { access_token, expires_in, token_type, scope, refresh_token } =
+          data;
+        this.tokenService.setLocalStorage('access_token', access_token);
+        this.tokenService.setLocalStorage('token_type', token_type);
+        this.tokenService.setLocalStorage('refresh_token', refresh_token);
+        this.tokenService.setLocalStorage('scope', scope);
+        this.tokenService.setLocalStorage('expires_in', expires_in);
+        return access_token as string;
+      })
+    );
   }
 
   async getAuthCode() {

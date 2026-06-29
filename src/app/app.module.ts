@@ -14,6 +14,7 @@ import { OpcoesComponent } from './modules/opcoes/opcoes.component';
 import { ConferenciaComponent } from './modules/pedidos-conferencia/conferencia.component';
 import { LogisticasService } from './services/logisitica.service';
 import { RateLimitInterceptor } from './services/rate.interceptor';
+import { AuthInterceptor } from './services/auth.interceptor';
 import { PedidosComponent } from './modules/pedidos/pedidos.component';
 
 
@@ -34,6 +35,7 @@ import { PedidosComponent } from './modules/pedidos/pedidos.component';
     HttpClientModule,
   ],
   providers: [CookieService, PedidosService, LogisticasService,
+   { provide:HTTP_INTERCEPTORS,useClass:AuthInterceptor, multi:true},
    { provide:HTTP_INTERCEPTORS,useClass:RateLimitInterceptor, multi:true}
   ],
   bootstrap: [AppComponent],

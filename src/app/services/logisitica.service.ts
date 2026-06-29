@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { TokenService } from './token.service';
@@ -23,25 +23,15 @@ export class LogisticasService {
   ) {}
 
   getLogisticaRemessa(id: any) {
-    const token: any = this.tokenService.getToken();
-
     const urlToken = `/Api/v3/logisticas/remessas/${id}`;
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(urlToken, { headers: header });
+    return this.http.get(urlToken);
   }
 
   getEtiquetaDeTransporte(idPedido: number[]) {
-    const token: any = this.tokenService.getToken();
-
     const urlToken = `/Api/v3/logisticas/etiquetas?idsVendas%5B%5D=${idPedido}&formato=PDF`;
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(urlToken, { headers: header });
+    return this.http.get(urlToken);
   }
 
   getBlob(url: string) {
@@ -81,21 +71,11 @@ export class LogisticasService {
   }
 
   getLogisticas(){
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
-
-    return this.http.get('/Api/v3/logisticas?situacao=H', { headers: header })
+    return this.http.get('/Api/v3/logisticas?situacao=H')
   }
 
   getLogisticasServicos(){
-    const token: any =  this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
-
-    return this.http.get('/Api/v3/logisticas/servicos ', { headers: header })
+    return this.http.get('/Api/v3/logisticas/servicos ')
   }
 
 

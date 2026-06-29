@@ -80,62 +80,37 @@ export class PedidosService {
   }
 
   getPedidos(params: BuscaParams) {
-    const token: any = this.tokenService.getToken();
-
     let urlToken = `/Api/v3/pedidos/vendas?pagina=${params?.pagination?.page}&limite=${params?.pagination?.limit}&idContato=${params.idContato}&numero=${params.numero}&dataInicial=${params?.period?.start}&dataFinal=${params?.period?.end}&idsSituacoes=${params?.situations}`;
     params.idLoja != null ? (urlToken += `&numerosLojas=${params.idLoja}`) : null;
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(urlToken, { headers: header });
+    return this.http.get(urlToken);
   }
 
   getPedidosDetail(id: number) {
     const urlToken = `/Api/v3/pedidos/vendas/${id}`;
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(urlToken, { headers: header });
+    return this.http.get(urlToken);
   }
 
   getModule() {
     const url = '/Api/v3/situacoes/modulos';
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(url, { headers: header });
+    return this.http.get(url);
   }
 
   getSituations(id: number) {
     const url = `/Api/v3/situacoes/modulos/${id}`;
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.get(url, { headers: header });
+    return this.http.get(url);
   }
 
   putOrderSit(idOrder: number, idSituation: number) {
     const url = `/Api/v3/pedidos/vendas/${idOrder}/situacoes/${idSituation}`;
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
 
-    return this.http.patch(
-      url,
-      {
-        idPedidoVenda: idOrder,
-        idSituacao: idSituation,
-      },
-      { headers: header }
-    );
+    return this.http.patch(url, {
+      idPedidoVenda: idOrder,
+      idSituacao: idSituation,
+    });
   }
 
   handleError(error: any) {
@@ -171,11 +146,7 @@ export class PedidosService {
 
   getNF(idNfe: number) {
     const url = `/Api/v3/nfe/${idNfe}`;
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    });
-    return this.http.get(url, { headers: header });
+    return this.http.get(url);
   }
 
   getDanfe(danfeURL: string) {
@@ -413,21 +384,11 @@ export class PedidosService {
 
 
   getProductById(id:number){
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
-
-    return this.http.get<any>(`/Api/v3/produtos/${id}`, {headers: header})
+    return this.http.get<any>(`/Api/v3/produtos/${id}`)
   }
 
   getProductByCode(code:string){
-    const token: any = this.tokenService.getToken();
-    const header = new HttpHeaders({
-      Authorization: `Bearer ${token.__zone_symbol__value}`,
-    })
-
-    return this.http.get<any>(`/Api/v3/produtos?codigo=${code}`, {headers: header})
+    return this.http.get<any>(`/Api/v3/produtos?codigo=${code}`)
   }
 
 
